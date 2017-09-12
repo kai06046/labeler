@@ -33,10 +33,12 @@ class Interface(object):
             if ok:
                 self.video_path = self.video_dirs[0]
                 self.init_video()
+                self.results = dict()
         elif type == 'file':
             ok = self.get_file()
             if ok:
                 self.init_video()
+                self.results = dict()
 
     def get_dirs(self):
         dirs = askdirectory(title='請選擇影像檔案的路徑', initialdir='../')

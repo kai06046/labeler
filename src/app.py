@@ -33,14 +33,21 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         # variables for class
         self.class_ind = 1
         self.class_buttons = []
+        self.results = dict()
+
+        # variables for drawing rectangle
+        self.is_mv = False
+        self.mv_pt = None
+        self.p1 = None
 
         # widgets
         self.display_frame = None
+        self.disply_l = None
         self.op_frame = None
         self.info_frame = None
         self.scale_n_frame = None
         self.treeview = None
-        # self.bbox_list = None
+        self.label_video_name = self.label_time = self.label_done_n_video = self.label_done_n_frame = self.label_xy = None
         
         # UI
         self.parent = tk.Tk()
@@ -95,6 +102,10 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.display_frame.grid_rowconfigure(1, weight=1)
         self.disply_l = ttk.Label(self.display_frame, image=self.__image__)
         self.disply_l.grid(row=0, column=0, sticky='news')
+        self.disply_l.bind('<Button-1>', self.on_l_mouse)
+        self.disply_l.bind('<Button-3>', self.on_r_mouse)
+        self.disply_l.bind('<Motion>', self.on_mouse_mv)
+        self.disply_l.bind('<ButtonRelease-1>', self.off_mouse)
 
         # frame operation frame
         self.op_frame = tk.Frame(self.display_frame)
@@ -172,8 +183,16 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.treeview.heading('br', text='右下')
         self.treeview.column('br', anchor='center', width=120)
         self.treeview.grid(row=0, column=0, sticky='news', padx=5, pady=10)
-        # self.bbox_list = tk.Listbox(bboxlist_label_frame, width=30, height=20)
-        # self.bbox_list.grid(row=0, column=0, sticky='news')
+
+        # define color
+        self.treeview.tag_configure('1', foreground='limegreen')
+        self.treeview.tag_configure('2', foreground='deepskyblue')
+        self.treeview.tag_configure('3', foreground='red2')
+        self.treeview.tag_configure('4', foreground='purple')
+        self.treeview.tag_configure('5', foreground='black')
+
+        self.label_xy = ttk.Label(bboxlist_label_frame, text='x: -- y: --')
+        self.label_xy.grid(row=1, column=0, sticky='e', padx=5)
 
     def create_info(self):
         text_video_name = '-----'
@@ -233,8 +252,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
             h, m = divmod(m, 60)
             text_time = "%d:%02d:%02d" % (h, m, s)
             
-            # self.label_nframe_v.configure(text="當前幀數: %s/%s" % (self.n_frame, self.total_frame))
             self.label_time.configure(text='影像時間: %s' % text_time)
-            self.scale_nframe.set(self.n_frame)
+            self.scale_n_frame.set(self.n_frame)
 
         self.parent.after(200, self.update_info)
