@@ -4,19 +4,20 @@ from tkinter import ttk
 class KeyHandler(object):
 
     def on_class_button(self, k):
-        self.class_ind = k
-        for i, b in enumerate(self.class_buttons):
-            if (k - 1) != i:
-                b['state'] = 'normal'
-            else:
-                b['state'] = 'disabled'
+        if not self.is_mv:
+            self.class_ind = k
+            for i, b in enumerate(self.class_buttons):
+                if (k - 1) != i:
+                    b['state'] = 'normal'
+                else:
+                    b['state'] = 'disabled'
 
     def set_n_frame(self, s):
         v = int(float(s))
         self.n_frame = v
 
     def on_l_mouse(self, event=None):
-        if not self.is_mv:
+        if not self.is_mv and self.video_path is not None:
             self.p1 = (event.x, event.y)
             self.is_mv = True
 

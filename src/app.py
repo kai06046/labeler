@@ -151,9 +151,13 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
 
         for i in range(1, 6):
             img = ImageTk.PhotoImage(file='icons/%s.png' % i)
-            b = ttk.Button(button_frame, image=img, command=lambda k=i: self.on_class_button(k=k), cursor='hand2')
+            func = lambda k=i: self.on_class_button(k=k)
+            b = ttk.Button(button_frame, image=img, command=func, cursor='hand2')
             b.image = img
             b.grid(row=0, column=i, sticky='news', padx=10, pady=0)
+            if i == self.class_ind:
+                b['state'] = 'disabled'
+            self.parent.bind('%s' % i, lambda event, k=i: self.on_class_button(k=k))
             self.class_buttons.append(b)
 
     def create_scale(self):
@@ -189,7 +193,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.treeview.tag_configure('2', foreground='deepskyblue')
         self.treeview.tag_configure('3', foreground='red2')
         self.treeview.tag_configure('4', foreground='purple')
-        self.treeview.tag_configure('5', foreground='black')
+        self.treeview.tag_configure('5', foreground='orange')
 
         self.label_xy = ttk.Label(bboxlist_label_frame, text='x: -- y: --')
         self.label_xy.grid(row=1, column=0, sticky='e', padx=5)

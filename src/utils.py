@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageTk
 
-COLOR = [(50, 205, 50), (255, 191, 0), (0, 0, 238), (211, 85, 186), (0, 0, 0)]
+COLOR = [(50, 205, 50), (255, 191, 0), (0, 0, 238), (211, 85, 186), (0, 165, 255)]
 
 class Utils(object):
 
