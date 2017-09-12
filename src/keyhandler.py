@@ -66,3 +66,24 @@ class KeyHandler(object):
                 data.append('%s, %s\n' % (k, boxes))
             with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
                 f.writelines(data)
+
+    # move to previous frame
+    def on_left(self, event=None, step=1):
+        if self.video_path is not None:
+            if self.n_frame > 1 and (self.n_frame - step) >= 1:
+                self.n_frame -= step
+            elif (self.n_frame - step) < 0:
+                self.n_frame = 1
+                self.msg('Already the first frame!')
+            else:
+                self.msg('Already the first frame!')
+    
+    # move to next frame
+    def on_right(self, event=None, step=1):
+        if self.video_path is not None:
+            if self.n_frame == self.total_frame:
+                self.msg('Already the last frame!')
+            elif (self.n_frame + step) > self.total_frame:
+                self.n_frame = self.total_frame 
+            else:
+                self.n_frame += step

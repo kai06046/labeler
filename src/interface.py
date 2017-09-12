@@ -32,15 +32,15 @@ class Interface(object):
             ok = self.get_dirs()
             if ok:
                 self.video_path = self.video_dirs[0]
-                self.root_dir = "/".join(self.video_path.split('/')[:-1])
-                self.init_video()
-                self.results = dict()
         elif type == 'file':
             ok = self.get_file()
-            if ok:
-                self.root_dir = "/".join(self.video_path.split('/')[:-1])
-                self.init_video()
-                self.results = dict()
+
+        if ok:
+            self.root_dir = "/".join(self.video_path.split('/')[:-1])
+            self.init_video()
+            self.results = dict()
+            self.scale_n_frame.state(['!disabled'])
+            self.scale_n_frame['to_'] = self.total_frame
 
     def get_dirs(self):
         dirs = askdirectory(title='請選擇影像檔案的路徑', initialdir='../')

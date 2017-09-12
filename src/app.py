@@ -48,7 +48,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.info_frame = None
         self.scale_n_frame = None
         self.treeview = None
-        self.label_video_name = self.label_time = self.label_done_n_video = self.label_done_n_frame = self.label_xy = None
+        self.label_n_frame = self.label_video_name = self.label_time = self.label_done_n_video = self.label_done_n_frame = self.label_xy = None
         
         # UI
         self.parent = tk.Tk()
@@ -129,8 +129,14 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         # bind event key
         self.parent.bind('<Escape>', self.on_close)
         self.parent.bind('<Delete>', self.on_delete)
-        self.parent.bind('<d>', self.on_delete)
+        self.parent.bind('<r>', self.on_delete)
         self.parent.bind('<Control-s>', self.on_save)
+        self.parent.bind('<Left>', self.on_left)
+        self.parent.bind('<a>', self.on_left)
+        self.parent.bind('<w>', lambda event: self.on_left(event, step=100))
+        self.parent.bind('<Right>', self.on_right)
+        self.parent.bind('<d>', self.on_right)
+        self.parent.bind('<s>', lambda event: self.on_right(event, step=100))
         self.treeview.bind('<Control-a>', self.on_select_all)
 
     def create_menu(self):
@@ -168,11 +174,13 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
 
     def create_scale(self):
         scale_frame = tk.Frame(self.op_frame)
-        scale_frame.grid(row=1, column=0, sticky='news')
+        scale_frame.grid(row=1, column=0, sticky='news', pady=10)
 
         scale_frame.grid_rowconfigure(0, weight=1)
         scale_frame.grid_columnconfigure(0, weight=1)
 
+        self.label_n_frame = ttk.Label(scale_frame, text='--/--')
+        self.label_n_frame.grid(row=0, column=0, padx=5)
         self.scale_n_frame = ttk.Scale(scale_frame, from_=1, to=self.total_frame, length=1250, command=self.set_n_frame)
         self.scale_n_frame.set(self.n_frame)
         self.scale_n_frame.state(['disabled'])
@@ -275,5 +283,6 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
             
             self.label_time.configure(text='影像時間: %s' % text_time)
             self.scale_n_frame.set(self.n_frame)
+            self.label_n_frame.configure(text='%s/%s' % (self.n_frame, self.total_frame))
 
         self.parent.after(200, self.update_info)
