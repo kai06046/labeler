@@ -7,24 +7,44 @@ from PIL import Image, ImageTk
 
 from src.interface import Interface
 from src.utils import Utils
+from src.keyhandler import KeyHandler
 
-class Labeler(tk.Frame, Interface, Utils):
+class Labeler(tk.Frame, Interface, Utils, KeyHandler):
 
     def __init__(self, *args, **kwargs):
 
+        # variables for videos
         self.video_dirs = None
         self.video_path = None
         self.__video__ = None
         self.__frame__ = None
         self.__orig_frame__ = None
         self.__image__ = None
+        self.width = 1280
+        self.height = 720
+        self.fps = None
+        self.resolution = None
+        self.total_frame = None
 
+        # variables for frame
         self._c_width = self._c_height = self._r_width = self._r_height = None
         self.n_frame = 1
+
+        # variables for class
+        self.class_ind = 1
+        self.class_buttons = []
+
+        # widgets
+        self.display_frame = None
+        self.op_frame = None
+        self.info_frame = None
+        self.scale_n_frame = None
+        self.treeview = None
+        # self.bbox_list = None
         
         # UI
         self.parent = tk.Tk()
-        self.parent.title('Burying Beetle Behavior Labeler')
+        self.parent.title('Object Labeler for video')
         self.parent.iconbitmap('icons/title.ico')
         self.parent.protocol('WM_DELETE_WINDOW', self.on_close)
         self.parent.option_add('*tearOff', False)
@@ -41,7 +61,7 @@ class Labeler(tk.Frame, Interface, Utils):
 
         # update
         self.update_display()
-        # self.update_label()
+        self.update_info()
 
         # display label ratio relative to whole window
         self.parent.update_idletasks()
@@ -62,13 +82,13 @@ class Labeler(tk.Frame, Interface, Utils):
         self.parent.grid_columnconfigure(0, weight=1)
         self.parent.grid_columnconfigure(1, weight=1)
 
-        # display panel
         self.__frame__ = np.zeros((720, 1280, 3), dtype='uint8')
         cv2.putText(self.__frame__, 'Load Video', (300, 360), 7, 5, (255, 255, 255), 2)
         self.__orig_frame__ = self.__frame__.copy()
         self.__image__ = ImageTk.PhotoImage(Image.fromarray(self.__frame__))
 
-        self.display_frame = tk.Frame(self.parent, bg='red')
+        # display panel frame
+        self.display_frame = tk.Frame(self.parent)
         self.display_frame.grid(row=0, column=0, padx=10, pady=10)
         self.display_frame.grid_rowconfigure(0, weight=1)
         self.display_frame.grid_columnconfigure(0, weight=1)
@@ -77,20 +97,21 @@ class Labeler(tk.Frame, Interface, Utils):
         self.disply_l.grid(row=0, column=0, sticky='news')
 
         # frame operation frame
-        self.op_frame = tk.Frame(self.display_frame, bg='blue')
+        self.op_frame = tk.Frame(self.display_frame)
         self.op_frame.grid(row=1, column=0, sticky='news', padx=10, pady=10)
         self.op_frame.grid_rowconfigure(0, weight=1)
         self.op_frame.grid_rowconfigure(1, weight=1)
         self.op_frame.grid_columnconfigure(0, weight=1)
         self.create_button()
+        self.create_scale()
 
-        self.info_frame = tk.Frame(self.parent, bg='green')
+        # information frame
+        self.info_frame = tk.Frame(self.parent)
         self.info_frame.grid(row=0, column=1, rowspan=2, sticky='news', pady=10)
         self.info_frame.grid_columnconfigure(0, weight=1)
+        self.info_frame.grid_rowconfigure(0, weight=1)
         self.info_frame.grid_rowconfigure(1, weight=1)
-        self.info_frame.grid_columnconfigure(1, weight=1)
-
-        # display info
+        self.create_treeview()
         self.create_info()
 
         # bind event key
@@ -108,10 +129,70 @@ class Labeler(tk.Frame, Interface, Utils):
         menu.add_cascade(label='File', menu=file)
 
     def create_button(self):
-        pass
+
+        button_label_frame = ttk.LabelFrame(self.op_frame, text='類別按鈕')
+        button_label_frame.grid(row=0, column=0, sticky='news')
+        button_label_frame.grid_rowconfigure(0, weight=1)
+        button_label_frame.grid_columnconfigure(0, weight=1)
+
+        button_frame = tk.Frame(button_label_frame)
+        button_frame.grid(row=0, column=0)
+
+        for i in range(1, 6):
+            img = ImageTk.PhotoImage(file='icons/%s.png' % i)
+            b = ttk.Button(button_frame, image=img, command=lambda k=i: self.on_class_button(k=k), cursor='hand2')
+            b.image = img
+            b.grid(row=0, column=i, sticky='news', padx=10, pady=0)
+            self.class_buttons.append(b)
+
+    def create_scale(self):
+        scale_frame = tk.Frame(self.op_frame)
+        scale_frame.grid(row=1, column=0, sticky='news')
+
+        scale_frame.grid_rowconfigure(0, weight=1)
+        scale_frame.grid_columnconfigure(0, weight=1)
+
+        self.scale_n_frame = ttk.Scale(scale_frame, from_=1, to=self.total_frame, length=1250, command=self.set_n_frame)
+        self.scale_n_frame.set(self.n_frame)
+        self.scale_n_frame.state(['disabled'])
+        self.scale_n_frame.grid(row=1, column=0, padx=10)
+
+    def create_treeview(self):
+        bboxlist_label_frame = ttk.LabelFrame(self.info_frame, text='Bounding boxes')
+        bboxlist_label_frame.grid(row=0, column=0, sticky='news', padx=5)
+        
+        self.treeview = ttk.Treeview(bboxlist_label_frame, height=10)
+        self.treeview['columns'] = ('c', 'tl', 'br')
+        self.treeview.heading('#0', text='', anchor='center')
+        self.treeview.column('#0', anchor='w', width=0)
+        self.treeview.heading('c', text='class')
+        self.treeview.column('c', anchor='center', width=90)
+        self.treeview.heading('tl', text='左上')
+        self.treeview.column('tl', anchor='center', width=120)
+        self.treeview.heading('br', text='右下')
+        self.treeview.column('br', anchor='center', width=120)
+        self.treeview.grid(row=0, column=0, sticky='news', padx=5, pady=10)
+        # self.bbox_list = tk.Listbox(bboxlist_label_frame, width=30, height=20)
+        # self.bbox_list.grid(row=0, column=0, sticky='news')
 
     def create_info(self):
-        pass
+        text_video_name = '-----'
+        text_time = '--:--:--'
+        text_done_n_video = '--/--'
+        text_done_n_frame = '--/--'
+
+        info_label_frame = ttk.LabelFrame(self.info_frame, text='影像信息')
+        info_label_frame.grid(row=1, column=0, sticky='news', padx=5)
+
+        self.label_video_name = ttk.Label(info_label_frame, text='影像檔名: %s' % text_video_name)
+        self.label_video_name.grid(row=0, column=0, sticky=tk.W, padx=5)
+        self.label_time = ttk.Label(info_label_frame, text='影像時間: %s' % text_time)
+        self.label_time.grid(row=1, column=0, sticky=tk.W, padx=5)
+
+        self.label_done_n_video = ttk.Label(info_label_frame, text='已完成標註影像數: %s' % text_done_n_video)
+        self.label_done_n_video.grid(row=2, column=0, sticky=tk.W, padx=5)
+        self.label_done_n_frame = ttk.Label(info_label_frame, text='已完成標註幀數: %s' % text_done_n_frame)
+        self.label_done_n_frame.grid(row=3, column=0, sticky=tk.W, padx=5)
 
     def init_video(self):
         if self.__video__ is not None:
@@ -141,3 +222,19 @@ class Labeler(tk.Frame, Interface, Utils):
         self.__video__.set(cv2.CAP_PROP_POS_FRAMES, self.n_frame - 1)
         ok, self.__frame__ = self.__video__.read()
         self.__orig_frame__ = self.__frame__.copy()
+    
+    def update_info(self):
+        if self.video_path is not None:
+            text_video_name = self.video_path.split('/')[-1]
+            self.label_video_name.configure(text='影像檔名: %s' % text_video_name)
+
+            sec = round(self.n_frame / self.fps, 2)
+            m, s = divmod(sec, 60)
+            h, m = divmod(m, 60)
+            text_time = "%d:%02d:%02d" % (h, m, s)
+            
+            # self.label_nframe_v.configure(text="當前幀數: %s/%s" % (self.n_frame, self.total_frame))
+            self.label_time.configure(text='影像時間: %s' % text_time)
+            self.scale_nframe.set(self.n_frame)
+
+        self.parent.after(200, self.update_info)
