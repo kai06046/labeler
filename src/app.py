@@ -127,6 +127,9 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
 
         # bind event key
         self.parent.bind('<Escape>', self.on_close)
+        self.parent.bind('<Delete>', self.on_delete)
+        self.parent.bind('<d>', self.on_delete)
+        self.treeview.bind('<Control-a>', self.on_select_all)
 
     def create_menu(self):
 
@@ -176,6 +179,11 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         bboxlist_label_frame = ttk.LabelFrame(self.info_frame, text='Bounding boxes')
         bboxlist_label_frame.grid(row=0, column=0, sticky='news', padx=5)
         
+        img = ImageTk.PhotoImage(file='icons/delete.png')
+        delete_button = ttk.Button(bboxlist_label_frame, image=img, command=self.on_delete, cursor='hand2')
+        delete_button.image = img
+        delete_button.grid(row=0, column=0, sticky='e', padx=5)
+
         self.treeview = ttk.Treeview(bboxlist_label_frame, height=10)
         self.treeview['columns'] = ('c', 'tl', 'br')
         self.treeview.heading('#0', text='', anchor='center')
@@ -186,7 +194,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.treeview.column('tl', anchor='center', width=120)
         self.treeview.heading('br', text='右下')
         self.treeview.column('br', anchor='center', width=120)
-        self.treeview.grid(row=0, column=0, sticky='news', padx=5, pady=10)
+        self.treeview.grid(row=1, column=0, sticky='news', padx=5)
 
         # define color
         self.treeview.tag_configure('1', foreground='limegreen')
@@ -196,7 +204,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.treeview.tag_configure('5', foreground='orange')
 
         self.label_xy = ttk.Label(bboxlist_label_frame, text='x: -- y: --')
-        self.label_xy.grid(row=1, column=0, sticky='e', padx=5)
+        self.label_xy.grid(row=2, column=0, sticky='w', padx=5)
 
     def create_info(self):
         text_video_name = '-----'

@@ -44,3 +44,12 @@ class KeyHandler(object):
 
             self.treeview.insert('', 'end', str(len(self.treeview.get_children())), values=values, tags = (str(self.class_ind)))
             self.p1 = self.mv_pt = None
+
+    def on_delete(self, event=None):
+        for v in self.treeview.selection():
+            self.treeview.delete(v)
+
+    def on_select_all(self, event=None):
+        if self.video_path is not None:
+            for x in self.treeview.get_children():
+                self.treeview.selection_add(x)
