@@ -32,11 +32,13 @@ class Interface(object):
             ok = self.get_dirs()
             if ok:
                 self.video_path = self.video_dirs[0]
+                self.root_dir = "/".join(self.video_path.split('/')[:-1])
                 self.init_video()
                 self.results = dict()
         elif type == 'file':
             ok = self.get_file()
             if ok:
+                self.root_dir = "/".join(self.video_path.split('/')[:-1])
                 self.init_video()
                 self.results = dict()
 
@@ -46,7 +48,8 @@ class Interface(object):
         if dirs in [None, ""]:
             return False
         else:
-            video_dirs = glob(os.path.join(dirs, '*.avi'))
+            video_dirs = ["%s/%s" % (dirs, f) for f in os.listdir(dirs) if f[-3:] == 'avi']
+            # glob(os.path.join(dirs, '*.avi'))
             res = len(video_dirs) > 0
             if not res:
                 self.msg('該路徑底下沒有影像檔案。')

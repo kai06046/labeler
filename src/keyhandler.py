@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import os
 
 class KeyHandler(object):
 
@@ -53,3 +54,15 @@ class KeyHandler(object):
         if self.video_path is not None:
             for x in self.treeview.get_children():
                 self.treeview.selection_add(x)
+
+    def on_save(self, event=None):
+        if self.video_path is not None:
+            video_name = self.video_path.split('/')[-1]
+            file_name = video_name.split('.avi')[0] + '_label.txt'
+
+            data = []
+            for k in sorted(self.results.keys()):
+                boxes = self.results[k]
+                data.append('%s, %s\n' % (k, boxes))
+            with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
+                f.writelines(data)

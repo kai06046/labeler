@@ -25,6 +25,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.fps = None
         self.resolution = None
         self.total_frame = None
+        self.root_dir = None
 
         # variables for frame
         self._c_width = self._c_height = self._r_width = self._r_height = None
@@ -129,6 +130,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.parent.bind('<Escape>', self.on_close)
         self.parent.bind('<Delete>', self.on_delete)
         self.parent.bind('<d>', self.on_delete)
+        self.parent.bind('<Control-s>', self.on_save)
         self.treeview.bind('<Control-a>', self.on_select_all)
 
     def create_menu(self):
@@ -139,6 +141,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         file = tk.Menu(menu)
         file.add_command(label='載入影像檔案路徑', command=lambda type='dir': self.on_load(type=type))
         file.add_command(label='載入影像檔案', command=lambda type='file': self.on_load(type=type))
+        file.add_command(label='儲存', command=self.on_save)
 
         menu.add_cascade(label='File', menu=file)
 
@@ -228,14 +231,20 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
     def init_video(self):
         if self.__video__ is not None:
             self.__video__.release()
-        self.__video__ = cv2.VideoCapture(self.video_path)
-        self.width = int(self.__video__.get(3))
-        self.height = int(self.__video__.get(4))
-        self.fps = int(self.__video__.get(5))
-        self.resolution = (self.width, self.height)
-        self.total_frame = int(self.__video__.get(cv2.CAP_PROP_FRAME_COUNT))
+        ok = os.path.isfile(self.video_path)
+        if ok:
+            self.__video__ = cv2.VideoCapture(self.video_path)
+            self.width = int(self.__video__.get(3))
+            self.height = int(self.__video__.get(4))
+            self.fps = int(self.__video__.get(5))
+            self.resolution = (self.width, self.height)
+            self.total_frame = int(self.__video__.get(cv2.CAP_PROP_FRAME_COUNT))
+        else:
+            string = 'Exist of %s: %s' % (self.video_path, os.path.isfile(self.video_path))
+            self.msg(string, type='warning')
+            self.video_path = None
 
-        print(self.video_path, (self.width, self.height), self.fps, self.resolution, self.total_frame)
+        # print(self.video_path, (self.width, self.height), self.fps, self.resolution, self.total_frame)
 
     def update_display(self):
         if self.video_path is not None:
