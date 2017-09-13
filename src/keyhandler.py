@@ -121,6 +121,7 @@ class KeyHandler(object):
                 data.append('%s, %s\n' % (k, boxes))
             with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
                 f.writelines(data)
+            self.msg('已存檔')
 
     # move to previous frame
     def on_left(self, event=None, step=1):
@@ -150,3 +151,23 @@ class KeyHandler(object):
                 self.n_frame += step
                 self.on_class_button(k=1)
                 self.update_treeview()
+
+    # move to previous video
+    def on_prev(self, event=None):
+        if self.video_dirs is not None:
+            current = self.video_dirs.index(self.video_path)
+            if current > 0:
+                self.video_path = self.video_dirs[current-1]
+                self.init_all()
+            else:
+                self.msg('已經是第一支影片了哦!')
+    
+    # move to next video
+    def on_next(self, event=None):
+        if self.video_dirs is not None:
+            current = self.video_dirs.index(self.video_path)
+            if current+1 < len(self.video_dirs):
+                self.video_path = self.video_dirs[current+1]
+                self.init_all()
+            else:
+                self.msg('已經是最後一支影片了哦!')

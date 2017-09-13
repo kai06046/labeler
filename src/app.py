@@ -26,12 +26,13 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.resolution = None
         self.total_frame = None
         self.root_dir = None
+        self.n_done_video = 0
 
         # variables for frame
         self._c_width = self._c_height = self._r_width = self._r_height = None
         self.n_frame = 1
 
-        # variables for class
+        # variables for class indexes
         self.class_ind = 1
         self.class_buttons = []
         self.results = dict()
@@ -150,6 +151,10 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.parent.bind('<d>', self.on_right)
         self.parent.bind('<Down>', lambda event: self.on_right(event, step=100))
         self.parent.bind('<s>', lambda event: self.on_right(event, step=100))
+        self.parent.bind('<Control-a>', self.on_prev)
+        self.parent.bind('<Control-d>', self.on_next)
+        self.parent.bind('<Control-Left>', self.on_prev)
+        self.parent.bind('<Control-Right>', self.on_next)
         self.treeview.bind('<Control-a>', self.on_select_all)
 
     def create_menu(self):
@@ -251,6 +256,25 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.label_done_n_frame = ttk.Label(info_label_frame, text='已完成標註幀數: %s' % text_done_n_frame)
         self.label_done_n_frame.grid(row=3, column=0, sticky=tk.W, padx=5)
 
+        # video operation frame
+        video_op_frame = tk.Frame(info_label_frame)
+        video_op_frame.grid(row=4, column=0, sticky='news', padx=5, pady= 10)
+
+        img_next = ImageTk.PhotoImage(file='icons/next.png')
+        img_prev = ImageTk.PhotoImage(file='icons/prev.png')
+        img_save = ImageTk.PhotoImage(file='icons/save.png')
+        b_prev = ttk.Button(video_op_frame, image=img_prev, command=self.on_prev, cursor='hand2')
+        b_prev.image = img_prev
+        b_prev.grid(row=0, column=0, sticky='news', padx=10, pady=0)
+
+        b_next = ttk.Button(video_op_frame, image=img_next, command=self.on_next, cursor='hand2')
+        b_next.image = img_next
+        b_next.grid(row=0, column=1, sticky='news', padx=10, pady=0)
+
+        b_save = ttk.Button(video_op_frame, image=img_save, command=self.on_save, cursor='hand2')
+        b_save.image = img_save
+        b_save.grid(row=0, column=2, sticky='news', padx=10, pady=0)
+
     def init_video(self):
         if self.__video__ is not None:
             self.__video__.release()
@@ -267,7 +291,28 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
             self.msg(string, type='warning')
             self.video_path = None
 
-        # print(self.video_path, (self.width, self.height), self.fps, self.resolution, self.total_frame)
+    def init_all(self):
+        self.root_dir = "/".join(self.video_path.split('/')[:-1])
+        self.init_video()
+        
+        # change class index
+        self.on_class_button(k=1)
+
+        # load previous label if file exists
+        filename = self.video_path.split('.avi')[0] + '_label.txt'
+        if os.path.isfile(filename):
+            with open(filename, 'r') as f:
+                data = f.readlines()
+            self.results = {eval(l)[0]: eval(l)[1] for l in data}
+        else:
+            self.results = dict()
+        
+        # update treeview rows
+        self.update_treeview()
+
+        # change scalebar state
+        self.scale_n_frame.state(['!disabled'])
+        self.scale_n_frame['to_'] = self.total_frame
 
     def update_display(self):
         if self.video_path is not None:
@@ -314,5 +359,5 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
             bboxes = self.results[self.n_frame]
             for i, v in enumerate(bboxes):
                 self.treeview.insert('', 'end', str(i), values=v, tags = (str(v[0])))
-        else:
-            print('oh no')
+        # else:
+        #     print('oh no')
