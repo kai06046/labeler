@@ -28,6 +28,7 @@ class Interface(object):
 
     # load file
     def on_load(self, type):
+        self.on_save()
         if type == 'dir':
             ok = self.get_dirs()
             if ok:

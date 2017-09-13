@@ -38,7 +38,6 @@ class KeyHandler(object):
             if self.class_ind in existed_class and self.class_ind != 5:
                 ind = existed_class.index(self.class_ind)
                 self.results[self.n_frame].pop(ind)
-                # self.treeview.delete(str(ind))
                 if len(self.results[self.n_frame]) == 0:
                     del self.results[self.n_frame]
 
@@ -48,13 +47,13 @@ class KeyHandler(object):
             n = len(self.results[self.n_frame])
             if n > 0:
                 self.results[self.n_frame].pop()
-                # if str(n-1) in self.treeview.get_children():
-                #     self.treeview.delete(str(n-1))
+                if str(n-1) in self.treeview.get_children():
+                    self.treeview.delete(str(n-1))
                 if len(self.results[self.n_frame]) == 0:
                     del self.results[self.n_frame]
 
             # auto change to previous class index if the current class index is not unknown
-            if self.class_ind > 1:
+            if self.class_ind > 1 and self.class_ind != 5:
                 self.on_class_button(k=self.class_ind-1)
 
     # callback for mouse move
@@ -81,17 +80,17 @@ class KeyHandler(object):
             else:
                 self.results[self.n_frame].append(values)
 
-            # x = tree.get_children()
-            # edit new bbox
-            if self.class_ind in [self.treeview.item(item)['values'][0] for item in self.treeview.get_children()]:
+            # edit box for existed class
+            if self.class_ind in [self.treeview.item(item)['values'][0] for item in self.treeview.get_children()] and self.class_ind != 5:
 
-                for item in self.treeview.get_children(): ## Changing all children from root item
+                for item in self.treeview.get_children():
                     if self.treeview.item(item)['values'][0] == self.class_ind:
                         self.treeview.item(item, values=values)
                         break
+            # else add new row in treeview
             else:
-            # print(len(self.treeview.get_children()))
                 self.treeview.insert('', 'end', str(len(self.treeview.get_children())), values=values, tags = (str(self.class_ind)))
+
             self.p1 = self.mv_pt = None
             
             # auto change to next class index if the current class index is not unknown
@@ -118,6 +117,7 @@ class KeyHandler(object):
             data = []
             for k in sorted(self.results.keys()):
                 boxes = self.results[k]
+                boxes = sorted(boxes, key=lambda x: x[0])
                 data.append('%s, %s\n' % (k, boxes))
             with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
                 f.writelines(data)
