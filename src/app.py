@@ -133,9 +133,11 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.parent.bind('<Control-s>', self.on_save)
         self.parent.bind('<Left>', self.on_left)
         self.parent.bind('<a>', self.on_left)
+        self.parent.bind('<Up>', lambda event: self.on_left(event, step=100))
         self.parent.bind('<w>', lambda event: self.on_left(event, step=100))
         self.parent.bind('<Right>', self.on_right)
         self.parent.bind('<d>', self.on_right)
+        self.parent.bind('<Down>', lambda event: self.on_right(event, step=100))
         self.parent.bind('<s>', lambda event: self.on_right(event, step=100))
         self.treeview.bind('<Control-a>', self.on_select_all)
 
@@ -284,5 +286,8 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
             self.label_time.configure(text='影像時間: %s' % text_time)
             self.scale_n_frame.set(self.n_frame)
             self.label_n_frame.configure(text='%s/%s' % (self.n_frame, self.total_frame))
-
+            try:
+                print(self.results[self.n_frame])
+            except:
+                pass
         self.parent.after(200, self.update_info)
