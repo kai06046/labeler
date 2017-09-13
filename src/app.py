@@ -291,4 +291,16 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
             self.label_done_n_video.configure(text='已完成標註影像數: %s' % text_done_n_video)
             self.label_done_n_frame.configure(text='已完成標註幀數: %s' % text_done_n_frame)
 
-        self.parent.after(200, self.update_info)
+        self.parent.after(100, self.update_info)
+
+    def update_treeview(self):
+        for x in self.treeview.get_children():
+            self.treeview.delete(x)
+
+        if self.n_frame in self.results.keys():
+            bboxes = self.results[self.n_frame]
+            print('hi', bboxes)
+            for i, v in enumerate(bboxes):
+                self.treeview.insert('', 'end', str(i), values=v, tags = (str(v[0])))
+        else:
+            print('oh no')

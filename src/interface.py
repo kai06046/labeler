@@ -38,6 +38,11 @@ class Interface(object):
         if ok:
             self.root_dir = "/".join(self.video_path.split('/')[:-1])
             self.init_video()
+            
+            # change class index
+            self.on_class_button(k=1)
+
+            # load previous label if file exists
             filename = self.video_path.split('.avi')[0] + '_label.txt'
             if os.path.isfile(filename):
                 with open(filename, 'r') as f:
@@ -45,6 +50,11 @@ class Interface(object):
                 self.results = {eval(l)[0]: eval(l)[1] for l in data}
             else:
                 self.results = dict()
+            
+            # update treeview rows
+            self.update_treeview()
+
+            # change scalebar state
             self.scale_n_frame.state(['!disabled'])
             self.scale_n_frame['to_'] = self.total_frame
 

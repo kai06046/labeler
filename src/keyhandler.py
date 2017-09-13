@@ -6,7 +6,7 @@ class KeyHandler(object):
 
     # change class index
     def on_class_button(self, k):
-        if not self.is_mv:
+        if not self.is_mv and k in range(1, 6):
             self.class_ind = k
             for i, b in enumerate(self.class_buttons):
                 if (k - 1) != i:
@@ -35,6 +35,7 @@ class KeyHandler(object):
                     self.treeview.delete(str(n-1))
                 if len(self.results[self.n_frame]) == 0:
                     del self.results[self.n_frame]
+            self.on_class_button(k=self.class_ind-1)
 
     # callback for mouse move
     def on_mouse_mv(self, event=None):
@@ -43,6 +44,7 @@ class KeyHandler(object):
             self.label_xy.configure(text='x: %s y: %s x1: %s, y1: %s' % (event.x, event.y, self.p1[0], self.p1[1]))
         else:
             self.label_xy.configure(text='x: %s y: %s' % (event.x, event.y))
+    
     # callback for left mouse release
     def off_mouse(self, event=None):
         if self.is_mv and self.mv_pt is not None:
@@ -61,6 +63,7 @@ class KeyHandler(object):
 
             self.treeview.insert('', 'end', str(len(self.treeview.get_children())), values=values, tags = (str(self.class_ind)))
             self.p1 = self.mv_pt = None
+            self.on_class_button(k=self.class_ind+1)
 
     # callback for delete button of treeview
     def on_delete(self, event=None):
@@ -91,8 +94,12 @@ class KeyHandler(object):
         if self.video_path is not None:
             if self.n_frame > 1 and (self.n_frame - step) >= 1:
                 self.n_frame -= step
+                self.on_class_button(k=1)
+                self.update_treeview()
             elif (self.n_frame - step) < 0:
                 self.n_frame = 1
+                self.on_class_button(k=1)
+                self.update_treeview()
                 self.msg('Already the first frame!')
             else:
                 self.msg('Already the first frame!')
@@ -104,5 +111,9 @@ class KeyHandler(object):
                 self.msg('Already the last frame!')
             elif (self.n_frame + step) > self.total_frame:
                 self.n_frame = self.total_frame 
+                self.on_class_button(k=1)
+                self.update_treeview()
             else:
                 self.n_frame += step
+                self.on_class_button(k=1)
+                self.update_treeview()
