@@ -74,4 +74,3 @@ class Interface(object):
                 return True
 
         return False
-

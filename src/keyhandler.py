@@ -4,6 +4,7 @@ import os
 
 class KeyHandler(object):
 
+    # change class index
     def on_class_button(self, k):
         if not self.is_mv:
             self.class_ind = k
@@ -13,15 +14,18 @@ class KeyHandler(object):
                 else:
                     b['state'] = 'disabled'
 
+    # set value for frame index scalebar
     def set_n_frame(self, s):
         v = int(float(s))
         self.n_frame = v
 
+    # callback for left mouse click
     def on_l_mouse(self, event=None):
         if not self.is_mv and self.video_path is not None:
             self.p1 = (event.x, event.y)
             self.is_mv = True
 
+    # callback for right mouse click
     def on_r_mouse(self, event=None):
         n = len(self.results[self.n_frame])
         if n > 0:
@@ -29,14 +33,23 @@ class KeyHandler(object):
             if str(n-1) in self.treeview.get_children():
                 self.treeview.delete(str(n-1))
 
+    # callback for mouse move
     def on_mouse_mv(self, event=None):
-        self.label_xy.configure(text='x: %s y: %s' % (event.x, event.y))
         if self.is_mv:
             self.mv_pt = (event.x, event.y)
-
+            self.label_xy.configure(text='x: %s y: %s x1: %s, y1: %s' % (event.x, event.y, self.p1[0], self.p1[1]))
+        else:
+            self.label_xy.configure(text='x: %s y: %s' % (event.x, event.y))
+    # callback for left mouse release
     def off_mouse(self, event=None):
         if self.is_mv and self.mv_pt is not None:
             self.is_mv = False
+            xmin = min(self.p1[0], event.x)
+            ymin = min(self.p1[1], event.y)
+            xmax = max(self.p1[0], event.x)
+            ymax = max(self.p1[1], event.y)
+            self.p1 = (xmin, ymin)
+            self.mv_pt = (xmax, ymax)
             values = (self.class_ind, self.p1, self.mv_pt)
             if self.n_frame not in self.results.keys():
                 self.results[self.n_frame] = [values]
@@ -46,15 +59,18 @@ class KeyHandler(object):
             self.treeview.insert('', 'end', str(len(self.treeview.get_children())), values=values, tags = (str(self.class_ind)))
             self.p1 = self.mv_pt = None
 
+    # callback for delete button of treeview
     def on_delete(self, event=None):
         for v in self.treeview.selection():
             self.treeview.delete(v)
 
+    # callback for select rows in treeview
     def on_select_all(self, event=None):
         if self.video_path is not None:
             for x in self.treeview.get_children():
                 self.treeview.selection_add(x)
 
+    # callback for save results
     def on_save(self, event=None):
         if self.video_path is not None:
             video_name = self.video_path.split('/')[-1]

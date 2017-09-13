@@ -155,7 +155,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
 
     def create_button(self):
 
-        button_label_frame = ttk.LabelFrame(self.op_frame, text='類別按鈕')
+        button_label_frame = ttk.LabelFrame(self.op_frame, text='選擇類別')
         button_label_frame.grid(row=0, column=0, sticky='news')
         button_label_frame.grid_rowconfigure(0, weight=1)
         button_label_frame.grid_columnconfigure(0, weight=1)
@@ -203,9 +203,9 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.treeview.column('#0', anchor='w', width=0)
         self.treeview.heading('c', text='class')
         self.treeview.column('c', anchor='center', width=90)
-        self.treeview.heading('tl', text='左上')
+        self.treeview.heading('tl', text='左上坐標')
         self.treeview.column('tl', anchor='center', width=120)
-        self.treeview.heading('br', text='右下')
+        self.treeview.heading('br', text='右下坐標')
         self.treeview.column('br', anchor='center', width=120)
         self.treeview.grid(row=1, column=0, sticky='news', padx=5)
 
@@ -286,8 +286,5 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
             self.label_time.configure(text='影像時間: %s' % text_time)
             self.scale_n_frame.set(self.n_frame)
             self.label_n_frame.configure(text='%s/%s' % (self.n_frame, self.total_frame))
-            try:
-                print(self.results[self.n_frame])
-            except:
-                pass
+
         self.parent.after(200, self.update_info)
