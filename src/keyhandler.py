@@ -13,7 +13,11 @@ class KeyHandler(object):
                     b['state'] = 'normal'
                 else:
                     b['state'] = 'disabled'
-
+                try:
+                    if k in [v[0] for v in self.results[self.n_frame]]:
+                        b['background'] = 'black'
+                except:
+                    pass
     # set value for frame index scalebar
     def set_n_frame(self, s):
         v = int(float(s))
@@ -25,11 +29,16 @@ class KeyHandler(object):
             self.p1 = (event.x, event.y)
             self.is_mv = True
 
-            existed_class = [v[0] for v in self.results[self.n_frame]]
-            if self.class_ind in existed_class:
+            if self.n_frame in self.results.keys():
+                existed_class = [v[0] for v in self.results[self.n_frame]]
+            else:
+                existed_class = []
+
+            # for known class, label at most 1 bounding box
+            if self.class_ind in existed_class and self.class_ind != 5:
                 ind = existed_class.index(self.class_ind)
                 self.results[self.n_frame].pop(ind)
-                self.treeview.delete(str(ind))
+                # self.treeview.delete(str(ind))
                 if len(self.results[self.n_frame]) == 0:
                     del self.results[self.n_frame]
 
@@ -39,12 +48,14 @@ class KeyHandler(object):
             n = len(self.results[self.n_frame])
             if n > 0:
                 self.results[self.n_frame].pop()
-                if str(n-1) in self.treeview.get_children():
-                    self.treeview.delete(str(n-1))
+                # if str(n-1) in self.treeview.get_children():
+                #     self.treeview.delete(str(n-1))
                 if len(self.results[self.n_frame]) == 0:
                     del self.results[self.n_frame]
 
-            self.on_class_button(k=self.class_ind-1)
+            # auto change to previous class index if the current class index is not unknown
+            if self.class_ind > 1:
+                self.on_class_button(k=self.class_ind-1)
 
     # callback for mouse move
     def on_mouse_mv(self, event=None):
@@ -70,9 +81,22 @@ class KeyHandler(object):
             else:
                 self.results[self.n_frame].append(values)
 
-            self.treeview.insert('', 'end', str(len(self.treeview.get_children())), values=values, tags = (str(self.class_ind)))
+            # x = tree.get_children()
+            # edit new bbox
+            if self.class_ind in [self.treeview.item(item)['values'][0] for item in self.treeview.get_children()]:
+
+                for item in self.treeview.get_children(): ## Changing all children from root item
+                    if self.treeview.item(item)['values'][0] == self.class_ind:
+                        self.treeview.item(item, values=values)
+                        break
+            else:
+            # print(len(self.treeview.get_children()))
+                self.treeview.insert('', 'end', str(len(self.treeview.get_children())), values=values, tags = (str(self.class_ind)))
             self.p1 = self.mv_pt = None
-            self.on_class_button(k=self.class_ind+1)
+            
+            # auto change to next class index if the current class index is not unknown
+            if self.class_ind <= 4:
+                self.on_class_button(k=self.class_ind+1)
 
     # callback for delete button of treeview
     def on_delete(self, event=None):

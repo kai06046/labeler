@@ -62,6 +62,17 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         tk.Grid.columnconfigure(self.parent, 1 , weight=1)
 
         # style = ttk.Style()
+        # style.map('TButton',
+        # foreground=[('disabled', 'yellow'),
+        #             ('pressed', 'red'),
+        #             ('active', 'blue')],
+        # background=[('disabled', 'magenta'),
+        #             ('pressed', '!focus', 'cyan'),
+        #             ('active', 'green')],
+        # highlightcolor=[('focus', 'green'),
+        #                 ('!focus', 'red')],
+        # relief=[('pressed', 'groove'),
+        #         ('!pressed', 'ridge')])
         # style.configure("Treeview.Heading", font=('Georgia', 14))
         # style.configure("Treeview", font=('Georgia', 12))
 
@@ -173,6 +184,8 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
                 b['state'] = 'disabled'
             self.parent.bind('%s' % i, lambda event, k=i: self.on_class_button(k=k))
             self.class_buttons.append(b)
+        # t = ttk.Button(button_frame, text='hi', command=lambda: print('hi'))
+        # t.grid(row=0, column=6)
 
     def create_scale(self):
         scale_frame = tk.Frame(self.op_frame)
@@ -299,7 +312,6 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
 
         if self.n_frame in self.results.keys():
             bboxes = self.results[self.n_frame]
-            print('hi', bboxes)
             for i, v in enumerate(bboxes):
                 self.treeview.insert('', 'end', str(i), values=v, tags = (str(v[0])))
         else:
