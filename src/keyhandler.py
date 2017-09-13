@@ -25,6 +25,14 @@ class KeyHandler(object):
             self.p1 = (event.x, event.y)
             self.is_mv = True
 
+            existed_class = [v[0] for v in self.results[self.n_frame]]
+            if self.class_ind in existed_class:
+                ind = existed_class.index(self.class_ind)
+                self.results[self.n_frame].pop(ind)
+                self.treeview.delete(str(ind))
+                if len(self.results[self.n_frame]) == 0:
+                    del self.results[self.n_frame]
+
     # callback for right mouse click
     def on_r_mouse(self, event=None):
         if self.n_frame in self.results.keys():
@@ -35,6 +43,7 @@ class KeyHandler(object):
                     self.treeview.delete(str(n-1))
                 if len(self.results[self.n_frame]) == 0:
                     del self.results[self.n_frame]
+
             self.on_class_button(k=self.class_ind-1)
 
     # callback for mouse move
