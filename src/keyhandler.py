@@ -100,7 +100,15 @@ class KeyHandler(object):
     # callback for delete button of treeview
     def on_delete(self, event=None):
         for v in self.treeview.selection():
+            c, p1, p2 = tuple(self.treeview.item(v)['values'])
+            p1, p2 = eval(','.join(p1.split(' '))), eval(','.join(p2.split(' ')))
+            values = (c, p1, p2)
+            self.results[self.n_frame].pop(self.results[self.n_frame].index(values))
+            if len(self.results[self.n_frame]) == 0:
+                del self.results[self.n_frame]
+
             self.treeview.delete(v)
+
 
     # callback for select rows in treeview
     def on_select_all(self, event=None):
@@ -121,7 +129,8 @@ class KeyHandler(object):
                 data.append('%s, %s\n' % (k, boxes))
             with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
                 f.writelines(data)
-            self.msg('已存檔')
+            print('%s已存檔於%s' % (file_name, self.root_dir))
+            # self.msg('已存檔')
 
     # move to previous frame
     def on_left(self, event=None, step=1):

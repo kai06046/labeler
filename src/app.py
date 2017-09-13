@@ -240,6 +240,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
     def create_info(self):
         text_video_name = '-----'
         text_time = '--:--:--'
+        text_n_video = '--/--'
         text_done_n_video = '--/--'
         text_done_n_frame = '--/--'
 
@@ -250,15 +251,17 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.label_video_name.grid(row=0, column=0, sticky=tk.W, padx=5)
         self.label_time = ttk.Label(info_label_frame, text='影像時間: %s' % text_time)
         self.label_time.grid(row=1, column=0, sticky=tk.W, padx=5)
+        self.label_n_video = ttk.Label(info_label_frame, text='影像 index: %s' % text_n_video)
+        self.label_n_video.grid(row=2, column=0, sticky=tk.W, padx=5)
 
         self.label_done_n_video = ttk.Label(info_label_frame, text='已完成標註影像數: %s' % text_done_n_video)
-        self.label_done_n_video.grid(row=2, column=0, sticky=tk.W, padx=5)
+        self.label_done_n_video.grid(row=3, column=0, sticky=tk.W, padx=5)
         self.label_done_n_frame = ttk.Label(info_label_frame, text='已完成標註幀數: %s' % text_done_n_frame)
-        self.label_done_n_frame.grid(row=3, column=0, sticky=tk.W, padx=5)
+        self.label_done_n_frame.grid(row=4, column=0, sticky=tk.W, padx=5)
 
         # video operation frame
         video_op_frame = tk.Frame(info_label_frame)
-        video_op_frame.grid(row=4, column=0, sticky='news', padx=5, pady= 10)
+        video_op_frame.grid(row=5, column=0, sticky='news', padx=5, pady= 10)
 
         img_next = ImageTk.PhotoImage(file='icons/next.png')
         img_prev = ImageTk.PhotoImage(file='icons/prev.png')
@@ -334,7 +337,9 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
     def update_info(self):
         if self.video_path is not None:
             text_video_name = self.video_path.split('/')[-1]
-            text_done_n_video = '%s/%s' % (0, len(self.video_dirs) if self.video_dirs is not None else 1)
+            text_n_video = '%s/%s' % (self.video_dirs.index(self.video_path) + 1 if self.video_dirs is not None else 1,\
+             len(self.video_dirs) if self.video_dirs is not None else 1)
+            text_done_n_video = '%s/%s' % (self.n_done_video, len(self.video_dirs) if self.video_dirs is not None else 1)
             text_done_n_frame = '%s/%s' % (len(self.results.keys()), 300)
             self.label_video_name.configure(text='影像檔名: %s' % text_video_name)
 
@@ -346,6 +351,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
             self.label_time.configure(text='影像時間: %s' % text_time)
             self.scale_n_frame.set(self.n_frame)
             self.label_n_frame.configure(text='%s/%s' % (self.n_frame, self.total_frame))
+            self.label_n_video.configure(text='影像 index: %s' % text_n_video)
             self.label_done_n_video.configure(text='已完成標註影像數: %s' % text_done_n_video)
             self.label_done_n_frame.configure(text='已完成標註幀數: %s' % text_done_n_frame)
 
