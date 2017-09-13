@@ -27,11 +27,14 @@ class KeyHandler(object):
 
     # callback for right mouse click
     def on_r_mouse(self, event=None):
-        n = len(self.results[self.n_frame])
-        if n > 0:
-            self.results[self.n_frame].pop()
-            if str(n-1) in self.treeview.get_children():
-                self.treeview.delete(str(n-1))
+        if self.n_frame in self.results.keys():
+            n = len(self.results[self.n_frame])
+            if n > 0:
+                self.results[self.n_frame].pop()
+                if str(n-1) in self.treeview.get_children():
+                    self.treeview.delete(str(n-1))
+                if len(self.results[self.n_frame]) == 0:
+                    del self.results[self.n_frame]
 
     # callback for mouse move
     def on_mouse_mv(self, event=None):

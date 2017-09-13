@@ -38,7 +38,13 @@ class Interface(object):
         if ok:
             self.root_dir = "/".join(self.video_path.split('/')[:-1])
             self.init_video()
-            self.results = dict()
+            filename = self.video_path.split('.avi')[0] + '_label.txt'
+            if os.path.isfile(filename):
+                with open(filename, 'r') as f:
+                    data = f.readlines()
+                self.results = {eval(l)[0]: eval(l)[1] for l in data}
+            else:
+                self.results = dict()
             self.scale_n_frame.state(['!disabled'])
             self.scale_n_frame['to_'] = self.total_frame
 
@@ -62,7 +68,6 @@ class Interface(object):
 
     def get_file(self):
         path = askopenfilename(title='請選擇影像檔案', filetypes=[('video file (*.avi;)', '*.avi;')])
-
         if path in [None, ""]:
             return False
         else:

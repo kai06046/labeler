@@ -266,7 +266,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         except:
             pass
 
-        self.disply_l.after(20, self.update_display)
+        self.disply_l.after(40, self.update_display)
 
     def update_frame(self):
         self.__video__.set(cv2.CAP_PROP_POS_FRAMES, self.n_frame - 1)
@@ -276,6 +276,8 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
     def update_info(self):
         if self.video_path is not None:
             text_video_name = self.video_path.split('/')[-1]
+            text_done_n_video = '%s/%s' % (0, len(self.video_dirs) if self.video_dirs is not None else 1)
+            text_done_n_frame = '%s/%s' % (len(self.results.keys()), 300)
             self.label_video_name.configure(text='影像檔名: %s' % text_video_name)
 
             sec = round(self.n_frame / self.fps, 2)
@@ -286,5 +288,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
             self.label_time.configure(text='影像時間: %s' % text_time)
             self.scale_n_frame.set(self.n_frame)
             self.label_n_frame.configure(text='%s/%s' % (self.n_frame, self.total_frame))
+            self.label_done_n_video.configure(text='已完成標註影像數: %s' % text_done_n_video)
+            self.label_done_n_frame.configure(text='已完成標註幀數: %s' % text_done_n_frame)
 
         self.parent.after(200, self.update_info)
