@@ -23,6 +23,7 @@ class Interface(object):
     # confirm quiting
     def on_close(self, event=None):
         if askokcancel('離開', '你確定要關閉程式嗎？'):
+            self.on_save()
             self.parent.quit()
             self.parent.destroy()
 
@@ -93,7 +94,7 @@ class Interface(object):
         description_frame.grid(row=0, column=0, sticky='news', padx=5, pady=5)
         description_frame.grid_columnconfigure(0, weight=1)
         description_frame.grid_rowconfigure(0, weight=1)
-        text = "這是一個標註埋葬蟲位置的軟體，請以滑鼠左鍵拖曳一個和埋葬蟲位置對應的長方形。\n"
+        text = "這是一個標註埋葬蟲位置的軟體，請以滑鼠左鍵拖曳一個和埋葬蟲位置對應的長方形。"
         tk.Message(description_frame, text=text, width=400).grid(row=0, column=0, sticky='w')
 
         key_frame = tk.Frame(settings_root)

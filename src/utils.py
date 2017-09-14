@@ -17,12 +17,11 @@ class Utils(object):
                 for b in boxes:
                     class_ind, p1, p2 = b
                     color = COLOR[class_ind - 1]
-                    if self.is_mv and class_ind == self.class_ind:
-                        pass
-                    else:
-                        cv2.rectangle(self.__frame__, p1, p2, color, 1)
-                        cv2.putText(self.__frame__, label_text[class_ind], (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255), 3)
-                        cv2.putText(self.__frame__, label_text[class_ind], (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, color, 1)
+                    if self.is_mv and (self.class_ind == class_ind and self.class_ind != 5):
+                        continue
+                    cv2.rectangle(self.__frame__, p1, p2, color, 1)
+                    cv2.putText(self.__frame__, label_text[class_ind], (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255), 3)
+                    cv2.putText(self.__frame__, label_text[class_ind], (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, color, 1)
 
             if self.is_mv and self.mv_pt is not None and self.p1 is not None:
                 color = COLOR[self.class_ind - 1]

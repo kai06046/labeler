@@ -48,14 +48,7 @@ class KeyHandler(Interface):
 
             # auto change to previous class index if the current class index is not unknown
             if self.n_frame in self.results.keys():
-                existed_class = [v[0] for v in self.results[self.n_frame]]
-                if self.class_ind > 1 and self.class_ind != 5:
-                    self.on_class_button(k=self.class_ind-1)
-                elif self.class_ind == 1:
-                    for i in range(2, 5):
-                        if i not in existed_class:
-                            self.on_class_button(k=i)
-                            break
+                self.class_reindex()
             else:
                 self.on_class_button(k=1)
 

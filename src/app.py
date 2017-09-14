@@ -287,9 +287,6 @@ class Labeler(tk.Frame, Utils, KeyHandler):
     def init_all(self):
         self.root_dir = "/".join(self.video_path.split('/')[:-1])
         self.init_video()
-        
-        # change class index
-        self.on_class_button(k=1)
 
         # load previous label if file exists
         filename = self.video_path.split('.avi')[0] + '_label.txt'
@@ -299,6 +296,10 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.results = {eval(l)[0]: eval(l)[1] for l in data}
         else:
             self.results = dict()
+
+        # change class index
+        self.class_reindex()
+        # self.on_class_button(k=1)
         
         # update treeview rows
         self.update_treeview()
@@ -355,3 +356,14 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             bboxes = self.results[self.n_frame]
             for i, v in enumerate(bboxes):
                 self.treeview.insert('', 'end', str(i), values=v, tags = (str(v[0])))
+
+    def class_reindex(self):
+
+        existed_class = [v[0] for v in self.results[self.n_frame]]
+        if self.class_ind > 1 and self.class_ind != 5:
+            self.on_class_button(k=self.class_ind-1)
+        elif self.class_ind == 1:
+            for i in range(2, 5):
+                if i not in existed_class:
+                    self.on_class_button(k=i)
+                    break
