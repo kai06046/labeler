@@ -21,7 +21,6 @@ class Utils(object):
                     cv2.putText(self.__frame__, label_text[class_ind], (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255), 3)
                     cv2.putText(self.__frame__, label_text[class_ind], (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, color, 1)
 
-
             if self.is_mv and self.mv_pt is not None and self.p1 is not None:
                 color = COLOR[self.class_ind - 1]
                 xmin = min(self.p1[0], self.mv_pt[0])

@@ -365,5 +365,3 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
             bboxes = self.results[self.n_frame]
             for i, v in enumerate(bboxes):
                 self.treeview.insert('', 'end', str(i), values=v, tags = (str(v[0])))
-        # else:
-        #     print('oh no')

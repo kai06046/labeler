@@ -29,18 +29,6 @@ class KeyHandler(object):
             self.p1 = (event.x, event.y)
             self.is_mv = True
 
-            if self.n_frame in self.results.keys():
-                existed_class = [v[0] for v in self.results[self.n_frame]]
-            else:
-                existed_class = []
-
-            # for known class, label at most 1 bounding box
-            if self.class_ind in existed_class and self.class_ind != 5:
-                ind = existed_class.index(self.class_ind)
-                self.results[self.n_frame].pop(ind)
-                if len(self.results[self.n_frame]) == 0:
-                    del self.results[self.n_frame]
-
     # callback for right mouse click
     def on_r_mouse(self, event=None):
         if self.n_frame in self.results.keys():
@@ -53,8 +41,14 @@ class KeyHandler(object):
                     del self.results[self.n_frame]
 
             # auto change to previous class index if the current class index is not unknown
+            existed_class = [v[0] for v in self.results[self.n_frame]]
             if self.class_ind > 1 and self.class_ind != 5:
                 self.on_class_button(k=self.class_ind-1)
+            elif self.class_ind == 1:
+                for i in range(2, 5):
+                    if i not in existed_class:
+                        self.on_class_button(k=i)
+                        break
 
     # callback for mouse move
     def on_mouse_mv(self, event=None):
@@ -78,11 +72,15 @@ class KeyHandler(object):
             if self.n_frame not in self.results.keys():
                 self.results[self.n_frame] = [values]
             else:
-                self.results[self.n_frame].append(values)
+                existed_class = [v[0] for v in self.results[self.n_frame]]
+                if self.class_ind in existed_class and self.class_ind != 5:
+                    ind = existed_class.index(self.class_ind)
+                    self.results[self.n_frame][ind] = values
+                else:
+                    self.results[self.n_frame].append(values)
 
             # edit box for existed class
             if self.class_ind in [self.treeview.item(item)['values'][0] for item in self.treeview.get_children()] and self.class_ind != 5:
-
                 for item in self.treeview.get_children():
                     if self.treeview.item(item)['values'][0] == self.class_ind:
                         self.treeview.item(item, values=values)
@@ -109,7 +107,6 @@ class KeyHandler(object):
 
             self.treeview.delete(v)
 
-
     # callback for select rows in treeview
     def on_select_all(self, event=None):
         if self.video_path is not None:
@@ -127,10 +124,10 @@ class KeyHandler(object):
                 boxes = self.results[k]
                 boxes = sorted(boxes, key=lambda x: x[0])
                 data.append('%s, %s\n' % (k, boxes))
-            with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
-                f.writelines(data)
-            print('%s已存檔於%s' % (file_name, self.root_dir))
-            # self.msg('已存檔')
+            if len(data) != 0:
+                with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
+                    f.writelines(data)
+                print('%s已存檔於%s' % (file_name, self.root_dir))
 
     # move to previous frame
     def on_left(self, event=None, step=1):
@@ -141,7 +138,7 @@ class KeyHandler(object):
                 self.update_treeview()
             elif (self.n_frame - step) < 0:
                 self.n_frame = 1
-                self.on_class_button(k=1)
+                # self.on_class_button(k=1)
                 self.update_treeview()
                 self.msg('Already the first frame!')
             else:
@@ -158,7 +155,7 @@ class KeyHandler(object):
                 self.update_treeview()
             else:
                 self.n_frame += step
-                self.on_class_button(k=1)
+                # self.on_class_button(k=1)
                 self.update_treeview()
 
     # move to previous video
