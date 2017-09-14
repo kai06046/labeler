@@ -5,11 +5,10 @@ import time, os, json, copy
 import numpy as np
 from PIL import Image, ImageTk
 
-from src.interface import Interface
 from src.utils import Utils
 from src.keyhandler import KeyHandler
 
-class Labeler(tk.Frame, Interface, Utils, KeyHandler):
+class Labeler(tk.Frame, Utils, KeyHandler):
 
     def __init__(self, *args, **kwargs):
 
@@ -62,21 +61,6 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         tk.Grid.rowconfigure(self.parent, 1 , weight=1)
         tk.Grid.columnconfigure(self.parent, 1 , weight=1)
 
-        # style = ttk.Style()
-        # style.map('TButton',
-        # foreground=[('disabled', 'yellow'),
-        #             ('pressed', 'red'),
-        #             ('active', 'blue')],
-        # background=[('disabled', 'magenta'),
-        #             ('pressed', '!focus', 'cyan'),
-        #             ('active', 'green')],
-        # highlightcolor=[('focus', 'green'),
-        #                 ('!focus', 'red')],
-        # relief=[('pressed', 'groove'),
-        #         ('!pressed', 'ridge')])
-        # style.configure("Treeview.Heading", font=('Georgia', 14))
-        # style.configure("Treeview", font=('Georgia', 12))
-
         self.create_ui()
 
         # update
@@ -89,7 +73,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self._r_width = self.__frame__.shape[1] / self.parent.winfo_reqwidth()
         
         # maximize the window
-        # self.parent.state('zoomed')
+        self.parent.state('zoomed')
 
         self.parent.mainloop()
 
@@ -141,6 +125,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         # bind event key
         self.parent.bind('<Escape>', self.on_close)
         self.parent.bind('<Delete>', self.on_delete)
+        self.parent.bind('<x>', self.on_delete)
         self.parent.bind('<r>', self.on_delete)
         self.parent.bind('<Control-s>', self.on_save)
         self.parent.bind('<Left>', self.on_left)
@@ -155,6 +140,7 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         self.parent.bind('<Control-d>', self.on_next)
         self.parent.bind('<Control-Left>', self.on_prev)
         self.parent.bind('<Control-Right>', self.on_next)
+        self.parent.bind('h', self.on_settings)
         self.treeview.bind('<Control-a>', self.on_select_all)
 
     def create_menu(self):
@@ -167,7 +153,11 @@ class Labeler(tk.Frame, Interface, Utils, KeyHandler):
         file.add_command(label='載入影像檔案', command=lambda type='file': self.on_load(type=type))
         file.add_command(label='儲存', command=self.on_save)
 
+        help = tk.Menu(menu)
+        help.add_command(label='設定', command=self.on_settings)
+
         menu.add_cascade(label='File', menu=file)
+        menu.add_cascade(label='Help', menu=help)
 
     def create_button(self):
 

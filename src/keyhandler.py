@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
 import os
+from src.interface import Interface
 
-class KeyHandler(object):
+class KeyHandler(Interface):
 
     # change class index
     def on_class_button(self, k):
@@ -18,6 +19,7 @@ class KeyHandler(object):
                         b['background'] = 'black'
                 except:
                     pass
+    
     # set value for frame index scalebar
     def set_n_frame(self, s):
         v = int(float(s))
@@ -183,8 +185,10 @@ class KeyHandler(object):
                 self.video_path = self.video_dirs[current-1]
                 self.init_all()
             else:
-                self.msg('已經是第一支影片了哦!')
-    
+                self.msg('已經是第一支影像了哦!')
+        else:
+            self.msg('只有一支影像哦!')
+
     # move to next video
     def on_next(self, event=None):
         if self.video_dirs is not None:
@@ -193,4 +197,10 @@ class KeyHandler(object):
                 self.video_path = self.video_dirs[current+1]
                 self.init_all()
             else:
-                self.msg('已經是最後一支影片了哦!')
+                self.msg('已經是最後一支影像了哦!')
+        else:
+            self.msg('只有一支影像哦!')
+
+    # popup a help description widget
+    def on_settings(self, event=None):
+        self.popup_help(self.parent)
