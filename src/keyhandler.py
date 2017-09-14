@@ -26,7 +26,11 @@ class KeyHandler(object):
     # callback for left mouse click
     def on_l_mouse(self, event=None):
         if not self.is_mv and self.video_path is not None:
-            self.p1 = (event.x, event.y)
+            x, y = event.x, event.y
+            if self.parent.state() == 'zoomed':
+                x = int(x / self._c_width)
+                y = int(y / self._c_height)
+            self.p1 = (x, y)
             self.is_mv = True
 
     # callback for right mouse click
@@ -41,31 +45,44 @@ class KeyHandler(object):
                     del self.results[self.n_frame]
 
             # auto change to previous class index if the current class index is not unknown
-            existed_class = [v[0] for v in self.results[self.n_frame]]
-            if self.class_ind > 1 and self.class_ind != 5:
-                self.on_class_button(k=self.class_ind-1)
-            elif self.class_ind == 1:
-                for i in range(2, 5):
-                    if i not in existed_class:
-                        self.on_class_button(k=i)
-                        break
+            if self.n_frame in self.results.keys():
+                existed_class = [v[0] for v in self.results[self.n_frame]]
+                if self.class_ind > 1 and self.class_ind != 5:
+                    self.on_class_button(k=self.class_ind-1)
+                elif self.class_ind == 1:
+                    for i in range(2, 5):
+                        if i not in existed_class:
+                            self.on_class_button(k=i)
+                            break
+            else:
+                self.on_class_button(k=1)
 
     # callback for mouse move
     def on_mouse_mv(self, event=None):
+        x, y = event.x, event.y
+        if self.parent.state() == 'zoomed':
+            x = int(x / self._c_width)
+            y = int(y / self._c_height)
+
         if self.is_mv:
-            self.mv_pt = (event.x, event.y)
-            self.label_xy.configure(text='x: %s y: %s x1: %s, y1: %s' % (event.x, event.y, self.p1[0], self.p1[1]))
+            self.mv_pt = (x, y)
+            self.label_xy.configure(text='x: %s y: %s x1: %s, y1: %s' % (x, y, self.p1[0], self.p1[1]))
         else:
-            self.label_xy.configure(text='x: %s y: %s' % (event.x, event.y))
+            self.label_xy.configure(text='x: %s y: %s' % (x, y))
     
     # callback for left mouse release
     def off_mouse(self, event=None):
+        x, y = event.x, event.y
+        if self.parent.state() == 'zoomed':
+            x = int(x / self._c_width)
+            y = int(y / self._c_height)
+
         if self.is_mv and self.mv_pt is not None:
             self.is_mv = False
-            xmin = min(self.p1[0], event.x)
-            ymin = min(self.p1[1], event.y)
-            xmax = max(self.p1[0], event.x)
-            ymax = max(self.p1[1], event.y)
+            xmin = min(self.p1[0], x)
+            ymin = min(self.p1[1], y)
+            xmax = max(self.p1[0], x)
+            ymax = max(self.p1[1], y)
             self.p1 = (xmin, ymin)
             self.mv_pt = (xmax, ymax)
             values = (self.class_ind, self.p1, self.mv_pt)

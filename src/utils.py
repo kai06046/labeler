@@ -41,9 +41,9 @@ class Utils(object):
             r2 = (shape[0] / self.parent.winfo_height())
             shrink_r = max(r1, r2)
             self._c_width = self._r_width / shrink_r
-            self._c_height = self._r_height / shrink_r
             nw = int(shape[1] * self._c_width)
             nh = int(shape[0] * nw / shape[1])
+            self._c_height = nw / shape[1]
             newsize = (nw, nh)
             self.__frame__ = cv2.resize(self.__frame__, newsize)
 
