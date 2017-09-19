@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import ttk
 import os
 from src.interface import Interface
+from tkinter.messagebox import askokcancel
+
+N = 300
 
 class KeyHandler(Interface):
 
@@ -139,18 +142,26 @@ class KeyHandler(Interface):
             if len(data) != 0:
                 with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
                     f.writelines(data)
-                print('%s已存檔於%s' % (file_name, self.root_dir))
+                print('%s 已存檔於 %s' % (file_name, self.root_dir))
 
     # move to previous frame
     def on_left(self, event=None, step=1):
+        self.check_done()
+
         if self.video_path is not None:
             if self.n_frame > 1 and (self.n_frame - step) >= 1:
                 self.n_frame -= step
-                self.on_class_button(k=1)
+                if self.n_frame in self.results.keys():
+                    self.class_reindex()
+                else:
+                    self.on_class_button(k=1)
                 self.update_treeview()
             elif (self.n_frame - step) < 0:
                 self.n_frame = 1
-                # self.on_class_button(k=1)
+                if self.n_frame in self.results.keys():
+                    self.class_reindex()
+                else:
+                    self.on_class_button(k=1)
                 self.update_treeview()
                 self.msg('Already the first frame!')
             else:
@@ -158,16 +169,24 @@ class KeyHandler(Interface):
     
     # move to next frame
     def on_right(self, event=None, step=1):
+        self.check_done()
+        
         if self.video_path is not None:
             if self.n_frame == self.total_frame:
                 self.msg('Already the last frame!')
             elif (self.n_frame + step) > self.total_frame:
                 self.n_frame = self.total_frame 
-                self.on_class_button(k=1)
+                if self.n_frame in self.results.keys():
+                    self.class_reindex()
+                else:
+                    self.on_class_button(k=1)
                 self.update_treeview()
             else:
                 self.n_frame += step
-                # self.on_class_button(k=1)
+                if self.n_frame in self.results.keys():
+                    self.class_reindex()
+                else:
+                    self.on_class_button(k=1)
                 self.update_treeview()
 
     # move to previous video
@@ -175,6 +194,7 @@ class KeyHandler(Interface):
         if self.video_dirs is not None:
             current = self.video_dirs.index(self.video_path)
             if current > 0:
+                self.on_save()
                 self.video_path = self.video_dirs[current-1]
                 self.init_all()
             else:
@@ -187,6 +207,7 @@ class KeyHandler(Interface):
         if self.video_dirs is not None:
             current = self.video_dirs.index(self.video_path)
             if current+1 < len(self.video_dirs):
+                self.on_save()
                 self.video_path = self.video_dirs[current+1]
                 self.init_all()
             else:
@@ -197,3 +218,10 @@ class KeyHandler(Interface):
     # popup a help description widget
     def on_settings(self, event=None):
         self.popup_help(self.parent)
+
+    # check if the label is done
+    def check_done(self):
+        n = len(self.results.keys())
+        if n == N:
+            if askokcancel('往下一個影像', '該影像已經標註 %s 了!\n要直接去下一個影像嗎?' % N):
+                self.on_next()

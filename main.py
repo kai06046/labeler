@@ -10,4 +10,5 @@ from src.app import Labeler
 # args = vars(parser.parse_args())
 
 if __name__ == '__main__':
-	Labeler()
+	labeler = Labeler()
+	labeler.run()

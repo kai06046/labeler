@@ -8,6 +8,8 @@ from PIL import Image, ImageTk
 from src.utils import Utils
 from src.keyhandler import KeyHandler
 
+N = 300
+
 class Labeler(tk.Frame, Utils, KeyHandler):
 
     def __init__(self, *args, **kwargs):
@@ -50,6 +52,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.treeview = None
         self.label_n_frame = self.label_video_name = self.label_time = self.label_done_n_video = self.label_done_n_frame = self.label_xy = None
         
+    def run(self):
         # UI
         self.parent = tk.Tk()
         self.parent.title('Object Labeler for video')
@@ -76,7 +79,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.state('zoomed')
 
         self.parent.mainloop()
-
+        
     def create_ui(self):
 
         self.create_menu()
@@ -179,8 +182,6 @@ class Labeler(tk.Frame, Utils, KeyHandler):
                 b['state'] = 'disabled'
             self.parent.bind('%s' % i, lambda event, k=i: self.on_class_button(k=k))
             self.class_buttons.append(b)
-        # t = ttk.Button(button_frame, text='hi', command=lambda: print('hi'))
-        # t.grid(row=0, column=6)
 
     def create_scale(self):
         scale_frame = tk.Frame(self.op_frame)
@@ -244,8 +245,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.label_n_video = ttk.Label(info_label_frame, text='影像 index: %s' % text_n_video)
         self.label_n_video.grid(row=2, column=0, sticky=tk.W, padx=5)
 
-        self.label_done_n_video = ttk.Label(info_label_frame, text='已完成標註影像數: %s' % text_done_n_video)
-        self.label_done_n_video.grid(row=3, column=0, sticky=tk.W, padx=5)
+        # self.label_done_n_video = ttk.Label(info_label_frame, text='已完成標註影像數: %s' % text_done_n_video)
+        # self.label_done_n_video.grid(row=3, column=0, sticky=tk.W, padx=5)
         self.label_done_n_frame = ttk.Label(info_label_frame, text='已完成標註幀數: %s' % text_done_n_frame)
         self.label_done_n_frame.grid(row=4, column=0, sticky=tk.W, padx=5)
 
@@ -298,8 +299,11 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.results = dict()
 
         # change class index
-        self.class_reindex()
-        # self.on_class_button(k=1)
+        self.n_frame = 1
+        if self.n_frame in self.results.keys():
+            self.class_reindex()
+        else:
+            self.on_class_button(k=1)
         
         # update treeview rows
         self.update_treeview()
@@ -330,8 +334,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             text_video_name = self.video_path.split('/')[-1]
             text_n_video = '%s/%s' % (self.video_dirs.index(self.video_path) + 1 if self.video_dirs is not None else 1,\
              len(self.video_dirs) if self.video_dirs is not None else 1)
-            text_done_n_video = '%s/%s' % (self.n_done_video, len(self.video_dirs) if self.video_dirs is not None else 1)
-            text_done_n_frame = '%s/%s' % (len(self.results.keys()), 300)
+            # text_done_n_video = '%s/%s' % (self.n_done_video, len(self.video_dirs) if self.video_dirs is not None else 1)
+            text_done_n_frame = '%s/%s' % (len(self.results.keys()), N)
             self.label_video_name.configure(text='影像檔名: %s' % text_video_name)
 
             sec = round(self.n_frame / self.fps, 2)
@@ -343,7 +347,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.scale_n_frame.set(self.n_frame)
             self.label_n_frame.configure(text='%s/%s' % (self.n_frame, self.total_frame))
             self.label_n_video.configure(text='影像 index: %s' % text_n_video)
-            self.label_done_n_video.configure(text='已完成標註影像數: %s' % text_done_n_video)
+            # self.label_done_n_video.configure(text='已完成標註影像數: %s' % text_done_n_video)
             self.label_done_n_frame.configure(text='已完成標註幀數: %s' % text_done_n_frame)
 
         self.parent.after(100, self.update_info)
@@ -358,7 +362,6 @@ class Labeler(tk.Frame, Utils, KeyHandler):
                 self.treeview.insert('', 'end', str(i), values=v, tags = (str(v[0])))
 
     def class_reindex(self):
-
         existed_class = [v[0] for v in self.results[self.n_frame]]
         if self.class_ind > 1 and self.class_ind != 5:
             self.on_class_button(k=self.class_ind-1)
