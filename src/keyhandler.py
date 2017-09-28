@@ -57,16 +57,17 @@ class KeyHandler(Interface):
 
     # callback for mouse move
     def on_mouse_mv(self, event=None):
-        x, y = event.x, event.y
-        if self.parent.state() == 'zoomed':
-            x = int(x / self._c_width)
-            y = int(y / self._c_height)
+        if self.video_path is not None:
+            x, y = event.x, event.y
+            if self.parent.state() == 'zoomed':
+                x = min(int(x / self._c_width), int(self.width))
+                y = min(int(y / self._c_height), int(self.height))
 
-        if self.is_mv:
-            self.mv_pt = (x, y)
-            self.label_xy.configure(text='x: %s y: %s x1: %s, y1: %s' % (x, y, self.p1[0], self.p1[1]))
-        else:
-            self.label_xy.configure(text='x: %s y: %s' % (x, y))
+            if self.is_mv:
+                self.mv_pt = (x, y)
+                self.label_xy.configure(text='x: %s y: %s x1: %s, y1: %s' % (x, y, self.p1[0], self.p1[1]))
+            else:
+                self.label_xy.configure(text='x: %s y: %s' % (x, y))
     
     # callback for left mouse release
     def off_mouse(self, event=None):
@@ -222,6 +223,7 @@ class KeyHandler(Interface):
     # check if the label is done
     def check_done(self):
         n = len(self.results.keys())
-        if n == N:
+        if n == N and not self.is_checked:
+            self.is_checked = True
             if askokcancel('往下一個影像', '該影像已經標註 %s 了!\n要直接去下一個影像嗎?' % N):
                 self.on_next()

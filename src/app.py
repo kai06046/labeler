@@ -40,10 +40,12 @@ class Labeler(tk.Frame, Utils, KeyHandler):
 
         # variables for drawing rectangle
         self.is_mv = False
+        self.is_checked = False
         self.mv_pt = None
         self.p1 = None
 
         # widgets
+        self.parent = None
         self.display_frame = None
         self.disply_l = None
         self.op_frame = None
@@ -79,6 +81,27 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.state('zoomed')
 
         self.parent.mainloop()
+    
+    def generate_bind_key(self):
+        self.parent.bind('<Escape>', self.on_close)
+        self.parent.bind('<Delete>', self.on_delete)
+        self.parent.bind('<x>', self.on_delete)
+        self.parent.bind('<r>', self.on_delete)
+        self.parent.bind('<Control-s>', self.on_save)
+        self.parent.bind('<Left>', self.on_left)
+        self.parent.bind('<a>', self.on_left)
+        self.parent.bind('<Up>', lambda event: self.on_left(event, step=100))
+        self.parent.bind('<w>', lambda event: self.on_left(event, step=100))
+        self.parent.bind('<Right>', self.on_right)
+        self.parent.bind('<d>', self.on_right)
+        self.parent.bind('<Down>', lambda event: self.on_right(event, step=100))
+        self.parent.bind('<s>', lambda event: self.on_right(event, step=100))
+        self.parent.bind('<Control-a>', self.on_prev)
+        self.parent.bind('<Control-d>', self.on_next)
+        self.parent.bind('<Control-Left>', self.on_prev)
+        self.parent.bind('<Control-Right>', self.on_next)
+        self.parent.bind('h', self.on_settings)
+        self.treeview.bind('<Control-a>', self.on_select_all)
         
     def create_ui(self):
 
@@ -122,29 +145,12 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.info_frame.grid_columnconfigure(0, weight=1)
         self.info_frame.grid_rowconfigure(0, weight=1)
         self.info_frame.grid_rowconfigure(1, weight=1)
+        self.info_frame.grid_rowconfigure(2, weight=1)
         self.create_treeview()
         self.create_info()
 
         # bind event key
-        self.parent.bind('<Escape>', self.on_close)
-        self.parent.bind('<Delete>', self.on_delete)
-        self.parent.bind('<x>', self.on_delete)
-        self.parent.bind('<r>', self.on_delete)
-        self.parent.bind('<Control-s>', self.on_save)
-        self.parent.bind('<Left>', self.on_left)
-        self.parent.bind('<a>', self.on_left)
-        self.parent.bind('<Up>', lambda event: self.on_left(event, step=100))
-        self.parent.bind('<w>', lambda event: self.on_left(event, step=100))
-        self.parent.bind('<Right>', self.on_right)
-        self.parent.bind('<d>', self.on_right)
-        self.parent.bind('<Down>', lambda event: self.on_right(event, step=100))
-        self.parent.bind('<s>', lambda event: self.on_right(event, step=100))
-        self.parent.bind('<Control-a>', self.on_prev)
-        self.parent.bind('<Control-d>', self.on_next)
-        self.parent.bind('<Control-Left>', self.on_prev)
-        self.parent.bind('<Control-Right>', self.on_next)
-        self.parent.bind('h', self.on_settings)
-        self.treeview.bind('<Control-a>', self.on_select_all)
+        self.generate_bind_key()
 
     def create_menu(self):
 
