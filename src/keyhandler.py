@@ -44,8 +44,8 @@ class KeyHandler(Interface):
             n = len(self.results[self.n_frame])
             if n > 0:
                 self.results[self.n_frame].pop()
-                if str(n-1) in self.treeview.get_children():
-                    self.treeview.delete(str(n-1))
+                if str(n-1) in self.bbox_tv.get_children():
+                    self.bbox_tv.delete(str(n-1))
                 if len(self.results[self.n_frame]) == 0:
                     del self.results[self.n_frame]
 
@@ -60,8 +60,8 @@ class KeyHandler(Interface):
         if self.video_path is not None:
             x, y = event.x, event.y
             if self.parent.state() == 'zoomed':
-                x = min(int(x / self._c_width), int(self.width))
-                y = min(int(y / self._c_height), int(self.height))
+                x = min(int(x / self._c_width), int(self.width-1))
+                y = min(int(y / self._c_height), int(self.height-1))
 
             if self.is_mv:
                 self.mv_pt = (x, y)
@@ -96,14 +96,14 @@ class KeyHandler(Interface):
                     self.results[self.n_frame].append(values)
 
             # edit box for existed class
-            if self.class_ind in [self.treeview.item(item)['values'][0] for item in self.treeview.get_children()] and self.class_ind != 5:
-                for item in self.treeview.get_children():
-                    if self.treeview.item(item)['values'][0] == self.class_ind:
-                        self.treeview.item(item, values=values)
+            if self.class_ind in [self.bbox_tv.item(item)['values'][0] for item in self.bbox_tv.get_children()] and self.class_ind != 5:
+                for item in self.bbox_tv.get_children():
+                    if self.bbox_tv.item(item)['values'][0] == self.class_ind:
+                        self.bbox_tv.item(item, values=values)
                         break
             # else add new row in treeview
             else:
-                self.treeview.insert('', 'end', str(len(self.treeview.get_children())), values=values, tags = (str(self.class_ind)))
+                self.bbox_tv.insert('', 'end', str(len(self.bbox_tv.get_children())), values=values, tags = (str(self.class_ind)))
 
             self.p1 = self.mv_pt = None
             
@@ -113,21 +113,21 @@ class KeyHandler(Interface):
 
     # callback for delete button of treeview
     def on_delete(self, event=None):
-        for v in self.treeview.selection():
-            c, p1, p2 = tuple(self.treeview.item(v)['values'])
+        for v in self.bbox_tv.selection():
+            c, p1, p2 = tuple(self.bbox_tv.item(v)['values'])
             p1, p2 = eval(','.join(p1.split(' '))), eval(','.join(p2.split(' ')))
             values = (c, p1, p2)
             self.results[self.n_frame].pop(self.results[self.n_frame].index(values))
             if len(self.results[self.n_frame]) == 0:
                 del self.results[self.n_frame]
 
-            self.treeview.delete(v)
+            self.bbox_tv.delete(v)
 
     # callback for select rows in treeview
     def on_select_all(self, event=None):
         if self.video_path is not None:
-            for x in self.treeview.get_children():
-                self.treeview.selection_add(x)
+            for x in self.bbox_tv.get_children():
+                self.bbox_tv.selection_add(x)
 
     # callback for save results
     def on_save(self, event=None):
@@ -227,3 +227,15 @@ class KeyHandler(Interface):
             self.is_checked = True
             if askokcancel('往下一個影像', '該影像已經標註 %s 了!\n要直接去下一個影像嗎?' % N):
                 self.on_next()
+
+    def tvitem_click(self, event, item=None):
+
+        sel_items = self.done_bbox_tv.selection() if item is None else item
+
+        if sel_items:
+            self.n_frame = self.done_bbox_tv.item(sel_items)['values'][0]
+            if self.n_frame in self.results.keys():
+                self.class_reindex()
+            else:
+                self.on_class_button(k=1)
+            self.update_treeview()

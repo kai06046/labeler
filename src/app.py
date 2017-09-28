@@ -51,7 +51,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.op_frame = None
         self.info_frame = None
         self.scale_n_frame = None
-        self.treeview = None
+        self.bbox_tv = self.done_bbox_tv = None
         self.label_n_frame = self.label_video_name = self.label_time = self.label_done_n_video = self.label_done_n_frame = self.label_xy = None
         
     def run(self):
@@ -101,7 +101,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.bind('<Control-Left>', self.on_prev)
         self.parent.bind('<Control-Right>', self.on_next)
         self.parent.bind('h', self.on_settings)
-        self.treeview.bind('<Control-a>', self.on_select_all)
+        self.bbox_tv.bind('<Control-a>', self.on_select_all)
+        self.done_bbox_tv.bind('<Button-1>', self.tvitem_click)
         
     def create_ui(self):
 
@@ -146,7 +147,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.info_frame.grid_rowconfigure(0, weight=1)
         self.info_frame.grid_rowconfigure(1, weight=1)
         self.info_frame.grid_rowconfigure(2, weight=1)
-        self.create_treeview()
+        self.create_bbox_tv()
+        self.create_done_bbox_tv()
         self.create_info()
 
         # bind event key
@@ -203,7 +205,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.scale_n_frame.state(['disabled'])
         self.scale_n_frame.grid(row=1, column=0, padx=10)
 
-    def create_treeview(self):
+    def create_bbox_tv(self):
         bboxlist_label_frame = ttk.LabelFrame(self.info_frame, text='Bounding boxes')
         bboxlist_label_frame.grid(row=0, column=0, sticky='news', padx=5)
         
@@ -212,27 +214,49 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         delete_button.image = img
         delete_button.grid(row=0, column=0, sticky='e', padx=5)
 
-        self.treeview = ttk.Treeview(bboxlist_label_frame, height=10)
-        self.treeview['columns'] = ('c', 'tl', 'br')
-        self.treeview.heading('#0', text='', anchor='center')
-        self.treeview.column('#0', anchor='w', width=0)
-        self.treeview.heading('c', text='class')
-        self.treeview.column('c', anchor='center', width=90)
-        self.treeview.heading('tl', text='左上坐標')
-        self.treeview.column('tl', anchor='center', width=120)
-        self.treeview.heading('br', text='右下坐標')
-        self.treeview.column('br', anchor='center', width=120)
-        self.treeview.grid(row=1, column=0, sticky='news', padx=5)
+        self.bbox_tv = ttk.Treeview(bboxlist_label_frame, height=10)
+        self.bbox_tv['columns'] = ('c', 'tl', 'br')
+        self.bbox_tv.heading('#0', text='', anchor='center')
+        self.bbox_tv.column('#0', anchor='w', width=0)
+        self.bbox_tv.heading('c', text='class')
+        self.bbox_tv.column('c', anchor='center', width=90)
+        self.bbox_tv.heading('tl', text='左上坐標')
+        self.bbox_tv.column('tl', anchor='center', width=120)
+        self.bbox_tv.heading('br', text='右下坐標')
+        self.bbox_tv.column('br', anchor='center', width=120)
+        self.bbox_tv.grid(row=1, column=0, sticky='news', padx=5)
 
         # define color
-        self.treeview.tag_configure('1', foreground='limegreen')
-        self.treeview.tag_configure('2', foreground='deepskyblue')
-        self.treeview.tag_configure('3', foreground='red2')
-        self.treeview.tag_configure('4', foreground='purple')
-        self.treeview.tag_configure('5', foreground='orange')
+        self.bbox_tv.tag_configure('1', foreground='limegreen')
+        self.bbox_tv.tag_configure('2', foreground='deepskyblue')
+        self.bbox_tv.tag_configure('3', foreground='red2')
+        self.bbox_tv.tag_configure('4', foreground='purple')
+        self.bbox_tv.tag_configure('5', foreground='orange')
 
         self.label_xy = ttk.Label(bboxlist_label_frame, text='x: -- y: --')
         self.label_xy.grid(row=2, column=0, sticky='w', padx=5)
+
+    def create_done_bbox_tv(self):
+        bboxlist_label_frame = ttk.LabelFrame(self.info_frame, text='檢視已標註的 BBoxes')
+        bboxlist_label_frame.grid(row=1, column=0, sticky='news', padx=5)
+        
+        self.done_bbox_tv = ttk.Treeview(bboxlist_label_frame, height=10)
+        self.done_bbox_tv['columns'] = ('f_ind', 'n')
+        self.done_bbox_tv.heading('#0', text='', anchor='center')
+        self.done_bbox_tv.column('#0', anchor='w', width=0)
+        self.done_bbox_tv.heading('f_ind', text='幀數')
+        self.done_bbox_tv.column('f_ind', anchor='center', width=90)
+        self.done_bbox_tv.heading('n', text='BBoxes 數量')
+        self.done_bbox_tv.column('n', anchor='center', width=120)
+        self.done_bbox_tv.grid(row=0, column=0, sticky='news', padx=5)
+
+        vsb = ttk.Scrollbar(bboxlist_label_frame, orient="vertical", command=self.done_bbox_tv.yview)
+        vsb.grid(row=0, column=1, sticky='news')        
+
+        self.done_bbox_tv.configure(yscrollcommand=vsb.set)
+
+        label = ttk.Label(bboxlist_label_frame, text='各類別標註數量:', font=("", 10, "bold"))
+        label.grid(row=1, column=0, columnspan=2, sticky='w', padx=5, pady=10)
 
     def create_info(self):
         text_video_name = '-----'
@@ -242,7 +266,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         text_done_n_frame = '--/--'
 
         info_label_frame = ttk.LabelFrame(self.info_frame, text='影像信息')
-        info_label_frame.grid(row=1, column=0, sticky='news', padx=5)
+        info_label_frame.grid(row=2, column=0, sticky='news', padx=5)
 
         self.label_video_name = ttk.Label(info_label_frame, text='影像檔名: %s' % text_video_name)
         self.label_video_name.grid(row=0, column=0, sticky=tk.W, padx=5)
@@ -359,13 +383,19 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.after(100, self.update_info)
 
     def update_treeview(self):
-        for x in self.treeview.get_children():
-            self.treeview.delete(x)
+        for x in self.bbox_tv.get_children():
+            self.bbox_tv.delete(x)
 
+        # current bounding boxes treeview
         if self.n_frame in self.results.keys():
             bboxes = self.results[self.n_frame]
             for i, v in enumerate(bboxes):
-                self.treeview.insert('', 'end', str(i), values=v, tags = (str(v[0])))
+                self.bbox_tv.insert('', 'end', str(i), values=v, tags = (str(v[0])))
+        
+        # done bounding boxes treeview
+        for k in sorted(self.results.keys()):
+            v2 = (k, len(self.results[k]))
+            self.done_bbox_tv.insert('', 'end', str(k), values=v2)
 
     def class_reindex(self):
         existed_class = [v[0] for v in self.results[self.n_frame]]
