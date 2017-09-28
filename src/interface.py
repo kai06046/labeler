@@ -87,8 +87,8 @@ class Interface(object):
         settings_root.focus_force()
         settings_root.title('設定')
 
-        ACTION = ['選擇需要標註的類別', '刪除選擇的標註', '刪除最後一個標註', '前一幀', '後一幀', '前100幀', '後100幀', '前一個影片', '下一個影片', '儲存', '設定', '離開']
-        HOTKEY = ['1/2/3/4/5', 'x/DELETE', '滑鼠右鍵', 'a/Left', 'd/Right', 'w/Up', 's/Down', 'Ctrl+a/Left', 'Ctrl+d/Right', 'Ctrl+s', 'h', 'Escape']
+        ACTION = ['選擇需要標註的類別', '刪除選擇的標註', '刪除最後一個標註', '前一幀', '後一幀', '前100幀', '後100幀', '前 1 個已標註的幀', '後 1 個已標註的幀', '前一個影片', '下一個影片', '儲存', '設定', '離開']
+        HOTKEY = ['1/2/3/4/5', 'x/DELETE', '滑鼠右鍵', 'a/Left', 'd/Right', 'w/Up', 's/Down', 'Page Up', 'Page Down', 'Ctrl+a/Left', 'Ctrl+d/Right', 'Ctrl+s', 'h', 'Escape']
 
         description_frame = ttk.LabelFrame(settings_root, text='關於')
         description_frame.grid(row=0, column=0, sticky='news', padx=5, pady=5)

@@ -52,7 +52,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.info_frame = None
         self.scale_n_frame = None
         self.bbox_tv = self.done_bbox_tv = None
-        self.label_n_frame = self.label_video_name = self.label_time = self.label_done_n_video = self.label_done_n_frame = self.label_xy = None
+        self.label_done_obj = self.label_n_frame = self.label_video_name = self.label_time = self.label_done_n_video = self.label_done_n_frame = self.label_xy = None
         
     def run(self):
         # UI
@@ -100,6 +100,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.bind('<Control-d>', self.on_next)
         self.parent.bind('<Control-Left>', self.on_prev)
         self.parent.bind('<Control-Right>', self.on_next)
+        self.parent.bind('<Next>', self.on_next_done)
+        self.parent.bind('<Prior>', self.on_prev_done)
         self.parent.bind('h', self.on_settings)
         self.bbox_tv.bind('<Control-a>', self.on_select_all)
         self.done_bbox_tv.bind('<Button-1>', self.tvitem_click)
@@ -255,8 +257,10 @@ class Labeler(tk.Frame, Utils, KeyHandler):
 
         self.done_bbox_tv.configure(yscrollcommand=vsb.set)
 
-        label = ttk.Label(bboxlist_label_frame, text='各類別標註數量:', font=("", 10, "bold"))
+        label = ttk.Label(bboxlist_label_frame, text='各類別已標註數量:', font=("", 10, "bold"))
         label.grid(row=1, column=0, columnspan=2, sticky='w', padx=5, pady=10)
+        self.label_done_obj = ttk.Label(bboxlist_label_frame, text="1: --\n2:-- \n3: --\n4: --\n5: --")
+        self.label_done_obj.grid(row=2, column=0, columnspan=2, sticky='w', padx=5)
 
     def create_info(self):
         text_video_name = '-----'
@@ -368,6 +372,10 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             text_done_n_frame = '%s/%s' % (len(self.results.keys()), N)
             self.label_video_name.configure(text='影像檔名: %s' % text_video_name)
 
+            count_list = [value[0] for k, v in self.results.items() for value in v]
+            v = [count_list.count(i) for i in range(1, 6)]
+            self.label_done_obj.configure(text="1: %s\n2: %s\n3: %s\n4: %s\n5: %s" % tuple(v))
+
             sec = round(self.n_frame / self.fps, 2)
             m, s = divmod(sec, 60)
             h, m = divmod(m, 60)
@@ -385,6 +393,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
     def update_treeview(self):
         for x in self.bbox_tv.get_children():
             self.bbox_tv.delete(x)
+        for x in self.done_bbox_tv.get_children():
+            self.done_bbox_tv.delete(x)
 
         # current bounding boxes treeview
         if self.n_frame in self.results.keys():

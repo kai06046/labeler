@@ -215,6 +215,26 @@ class KeyHandler(Interface):
                 self.msg('已經是最後一支影像了哦!')
         else:
             self.msg('只有一支影像哦!')
+    
+    # move to previous done frame
+    def on_prev_done(self, event=None):
+        if self.video_path is not None:
+            try:
+                min_n = max([f for f in self.results.keys() if f < self.n_frame])
+                if min_n != self.n_frame:
+                    self.n_frame = min_n
+            except Exception as e:
+                pass
+
+    # move to next done frame
+    def on_next_done(self, event=None):
+        if self.video_path is not None:
+            try:
+                min_n = min([f for f in self.results.keys() if f > self.n_frame])
+                if min_n != self.n_frame:
+                    self.n_frame = min_n
+            except Exception as e:
+                pass
 
     # popup a help description widget
     def on_settings(self, event=None):
