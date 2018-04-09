@@ -1,12 +1,16 @@
+import copy
+import json
+import os
+import time
 import tkinter as tk
 from tkinter import ttk
+
 import cv2
-import time, os, json, copy
 import numpy as np
 from PIL import Image, ImageTk
 
-from src.utils import Utils
 from src.keyhandler import KeyHandler
+from src.utils import Utils
 
 N = 300
 
@@ -53,7 +57,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.scale_n_frame = None
         self.bbox_tv = self.done_bbox_tv = None
         self.label_done_obj = self.label_n_frame = self.label_video_name = self.label_time = self.label_done_n_video = self.label_done_n_frame = self.label_xy = None
-        
+
     def run(self):
         # UI
         self.parent = tk.Tk()
@@ -76,12 +80,12 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.update_idletasks()
         self._r_height = self.__frame__.shape[0] / self.parent.winfo_reqheight()
         self._r_width = self.__frame__.shape[1] / self.parent.winfo_reqwidth()
-        
+
         # maximize the window
         self.parent.state('zoomed')
 
         self.parent.mainloop()
-    
+
     def generate_bind_key(self):
         self.parent.bind('<Escape>', self.on_close)
         self.parent.bind('<Delete>', self.on_delete)
@@ -105,7 +109,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.bind('h', self.on_settings)
         self.bbox_tv.bind('<Control-a>', self.on_select_all)
         self.done_bbox_tv.bind('<Button-1>', self.tvitem_click)
-        
+
     def create_ui(self):
 
         self.create_menu()
@@ -210,7 +214,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
     def create_bbox_tv(self):
         bboxlist_label_frame = ttk.LabelFrame(self.info_frame, text='Bounding boxes')
         bboxlist_label_frame.grid(row=0, column=0, sticky='news', padx=5)
-        
+
         img = ImageTk.PhotoImage(file='icons/delete.png')
         delete_button = ttk.Button(bboxlist_label_frame, image=img, command=self.on_delete, cursor='hand2')
         delete_button.image = img
@@ -241,7 +245,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
     def create_done_bbox_tv(self):
         bboxlist_label_frame = ttk.LabelFrame(self.info_frame, text='檢視已標註的 BBoxes')
         bboxlist_label_frame.grid(row=1, column=0, sticky='news', padx=5)
-        
+
         self.done_bbox_tv = ttk.Treeview(bboxlist_label_frame, height=10)
         self.done_bbox_tv['columns'] = ('f_ind', 'n')
         self.done_bbox_tv.heading('#0', text='', anchor='center')
@@ -253,7 +257,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.done_bbox_tv.grid(row=0, column=0, sticky='news', padx=5)
 
         vsb = ttk.Scrollbar(bboxlist_label_frame, orient="vertical", command=self.done_bbox_tv.yview)
-        vsb.grid(row=0, column=1, sticky='news')        
+        vsb.grid(row=0, column=1, sticky='news')
 
         self.done_bbox_tv.configure(yscrollcommand=vsb.set)
 
@@ -338,7 +342,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.class_reindex()
         else:
             self.on_class_button(k=1)
-        
+
         # update treeview rows
         self.update_treeview()
 
@@ -351,7 +355,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.update_frame()
         try:
             self.draw()
-            self.__image__ = ImageTk.PhotoImage(Image.fromarray(self.__frame__))            
+            self.__image__ = ImageTk.PhotoImage(Image.fromarray(self.__frame__))
             self.disply_l.configure(image=self.__image__)
         except:
             pass
@@ -362,7 +366,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.__video__.set(cv2.CAP_PROP_POS_FRAMES, self.n_frame - 1)
         ok, self.__frame__ = self.__video__.read()
         self.__orig_frame__ = self.__frame__.copy()
-    
+
     def update_info(self):
         if self.video_path is not None:
             text_video_name = self.video_path.split('/')[-1]
@@ -380,7 +384,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             m, s = divmod(sec, 60)
             h, m = divmod(m, 60)
             text_time = "%d:%02d:%02d" % (h, m, s)
-            
+
             self.label_time.configure(text='影像時間: %s' % text_time)
             self.scale_n_frame.set(self.n_frame)
             self.label_n_frame.configure(text='%s/%s' % (self.n_frame, self.total_frame))
@@ -401,7 +405,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             bboxes = self.results[self.n_frame]
             for i, v in enumerate(bboxes):
                 self.bbox_tv.insert('', 'end', str(i), values=v, tags = (str(v[0])))
-        
+
         # done bounding boxes treeview
         for k in sorted(self.results.keys()):
             v2 = (k, len(self.results[k]))
