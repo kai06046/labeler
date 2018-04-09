@@ -39,7 +39,7 @@ class Interface(object):
 
         if ok:
             self.init_all()
-            
+
     def get_dirs(self):
         dirs = askdirectory(title='請選擇影像檔案的路徑', initialdir='../')
 
@@ -125,10 +125,7 @@ class Interface(object):
         size = (settings_root.winfo_width(), settings_root.winfo_height())
         x = w/2 - size[0]/2
         y = h/2.25 - size[1]/2
-        # print("%dx%d+%d+%d" % (size + (x, y)))
-        r = 0 if master.state() == 'zoomed' else r
-        settings_root.geometry("%dx%d+%d+%d" % (size[0], size[1]+r, x, y))
+        settings_root.geometry("%dx%d+%d+%d" % (size[0], size[1], x, y))
 
         settings_root.bind('<Escape>', exit)
         settings_root.bind('<h>', exit)
-    
