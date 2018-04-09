@@ -19,19 +19,19 @@ class Labeler(tk.Frame, Utils, KeyHandler):
     def __init__(self, *args, **kwargs):
 
         # variables for videos
+        self.root_dir = None
         self.video_dirs = None
         self.video_path = None
-        self.__video__ = None
-        self.__frame__ = None
-        self.__orig_frame__ = None
-        self.__image__ = None
         self.width = 1280
         self.height = 720
         self.fps = None
         self.resolution = None
         self.total_frame = None
-        self.root_dir = None
         self.n_done_video = 0
+        self.__video = None
+        self.__frame = None
+        self.__orig_frame = None
+        self.__image = None
 
         # variables for frame
         self._c_width = self._c_height = self._r_width = self._r_height = None
@@ -40,7 +40,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         # variables for class indexes
         self.class_ind = 1
         self.class_buttons = []
-        self.results = dict()
+        self.results = {}
 
         # variables for drawing rectangle
         self.is_mv = False
@@ -60,9 +60,11 @@ class Labeler(tk.Frame, Utils, KeyHandler):
 
     def run(self):
         # UI
+        title_path = os.path.abspath(os.path.join('icons', 'title.ico'))
         self.parent = tk.Tk()
         self.parent.title('Object Labeler for video')
-        self.parent.iconbitmap('icons/title.ico')
+        if os.name == 'nt':
+            self.parent.iconbitmap(title_path)
         self.parent.protocol('WM_DELETE_WINDOW', self.on_close)
         self.parent.option_add('*tearOff', False)
         tk.Grid.rowconfigure(self.parent, 0 , weight=1)
@@ -78,11 +80,14 @@ class Labeler(tk.Frame, Utils, KeyHandler):
 
         # display label ratio relative to whole window
         self.parent.update_idletasks()
-        self._r_height = self.__frame__.shape[0] / self.parent.winfo_reqheight()
-        self._r_width = self.__frame__.shape[1] / self.parent.winfo_reqwidth()
+        self._r_height = self.__frame.shape[0] / self.parent.winfo_reqheight()
+        self._r_width = self.__frame.shape[1] / self.parent.winfo_reqwidth()
 
         # maximize the window
-        self.parent.state('zoomed')
+        if os.name == 'nt':
+            self.parent.state('zoomed')
+        else:
+            self.parent.attributes('-zoomed', True)
 
         self.parent.mainloop()
 
@@ -119,10 +124,10 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.grid_columnconfigure(0, weight=1)
         self.parent.grid_columnconfigure(1, weight=1)
 
-        self.__frame__ = np.zeros((720, 1280, 3), dtype='uint8')
-        cv2.putText(self.__frame__, 'Load Video', (300, 360), 7, 5, (255, 255, 255), 2)
-        self.__orig_frame__ = self.__frame__.copy()
-        self.__image__ = ImageTk.PhotoImage(Image.fromarray(self.__frame__))
+        self.__frame = np.zeros((720, 1280, 3), dtype='uint8')
+        cv2.putText(self.__frame, 'Load Video', (300, 360), 7, 5, (255, 255, 255), 2)
+        self.__orig_frame = self.__frame.copy()
+        self.__image = ImageTk.PhotoImage(Image.fromarray(self.__frame))
 
         # display panel frame
         self.display_frame = tk.Frame(self.parent)
@@ -130,7 +135,9 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.display_frame.grid_rowconfigure(0, weight=1)
         self.display_frame.grid_columnconfigure(0, weight=1)
         self.display_frame.grid_rowconfigure(1, weight=1)
-        self.disply_l = ttk.Label(self.display_frame, image=self.__image__)
+
+        # display_frame > display_l
+        self.disply_l = ttk.Label(self.display_frame, image=self.__image)
         self.disply_l.grid(row=0, column=0, sticky='news')
         self.disply_l.bind('<Button-1>', self.on_l_mouse)
         self.disply_l.bind('<Button-3>', self.on_r_mouse)
@@ -138,6 +145,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.disply_l.bind('<ButtonRelease-1>', self.off_mouse)
 
         # frame operation frame
+        # display_frame > op_frame
         self.op_frame = tk.Frame(self.display_frame)
         self.op_frame.grid(row=1, column=0, sticky='news', padx=10, pady=10)
         self.op_frame.grid_rowconfigure(0, weight=1)
@@ -147,6 +155,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.create_scale()
 
         # information frame
+        # display_frame > info_frame
         self.info_frame = tk.Frame(self.parent)
         self.info_frame.grid(row=0, column=1, rowspan=2, sticky='news', pady=10)
         self.info_frame.grid_columnconfigure(0, weight=1)
@@ -165,16 +174,16 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         menu = tk.Menu(self.parent)
         self.parent.config(menu=menu)
 
-        file = tk.Menu(menu)
-        file.add_command(label='載入影像檔案路徑', command=lambda type='dir': self.on_load(type=type))
-        file.add_command(label='載入影像檔案', command=lambda type='file': self.on_load(type=type))
-        file.add_command(label='儲存', command=self.on_save)
+        menu_file = tk.Menu(menu)
+        menu_file.add_command(label='載入影像檔案路徑', command=lambda type_='dir': self.on_load(type=type_))
+        menu_file.add_command(label='載入影像檔案', command=lambda type_='file': self.on_load(type=type_))
+        menu_file.add_command(label='儲存', command=self.on_save)
 
-        help = tk.Menu(menu)
-        help.add_command(label='設定', command=self.on_settings)
+        menu_help = tk.Menu(menu)
+        menu_help.add_command(label='設定', command=self.on_settings)
 
-        menu.add_cascade(label='File', menu=file)
-        menu.add_cascade(label='Help', menu=help)
+        menu.add_cascade(label='File', menu=menu_file)
+        menu.add_cascade(label='Help', menu=menu_help)
 
     def create_button(self):
 
@@ -308,16 +317,16 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         b_save.grid(row=0, column=2, sticky='news', padx=10, pady=0)
 
     def init_video(self):
-        if self.__video__ is not None:
-            self.__video__.release()
+        if self.__video is not None:
+            self.__video.release()
         ok = os.path.isfile(self.video_path)
         if ok:
-            self.__video__ = cv2.VideoCapture(self.video_path)
-            self.width = int(self.__video__.get(3))
-            self.height = int(self.__video__.get(4))
-            self.fps = int(self.__video__.get(5))
+            self.__video = cv2.VideoCapture(self.video_path)
+            self.width = int(self.__video.get(3))
+            self.height = int(self.__video.get(4))
+            self.fps = int(self.__video.get(5))
             self.resolution = (self.width, self.height)
-            self.total_frame = int(self.__video__.get(cv2.CAP_PROP_FRAME_COUNT))
+            self.total_frame = int(self.__video.get(cv2.CAP_PROP_FRAME_COUNT))
         else:
             string = 'Exist of %s: %s' % (self.video_path, os.path.isfile(self.video_path))
             self.msg(string, type='warning')
@@ -355,17 +364,17 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.update_frame()
         try:
             self.draw()
-            self.__image__ = ImageTk.PhotoImage(Image.fromarray(self.__frame__))
-            self.disply_l.configure(image=self.__image__)
+            self.__image = ImageTk.PhotoImage(Image.fromarray(self.__frame))
+            self.disply_l.configure(image=self.__image)
         except:
             pass
 
         self.disply_l.after(40, self.update_display)
 
     def update_frame(self):
-        self.__video__.set(cv2.CAP_PROP_POS_FRAMES, self.n_frame - 1)
-        ok, self.__frame__ = self.__video__.read()
-        self.__orig_frame__ = self.__frame__.copy()
+        self.__video.set(cv2.CAP_PROP_POS_FRAMES, self.n_frame - 1)
+        ok, self.__frame = self.__video.read()
+        self.__orig_frame = self.__frame.copy()
 
     def update_info(self):
         if self.video_path is not None:
