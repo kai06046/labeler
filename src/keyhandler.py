@@ -1,10 +1,13 @@
+import logging
+import os
 import tkinter as tk
 from tkinter import ttk
-import os
-from src.interface import Interface
 from tkinter.messagebox import askokcancel
 
+from src.interface import Interface
+
 N = 300
+LOGGER = logging.getLogger(__name__)
 
 class KeyHandler(Interface):
 
@@ -22,7 +25,7 @@ class KeyHandler(Interface):
                         b['background'] = 'black'
                 except:
                     pass
-    
+
     # set value for frame index scalebar
     def set_n_frame(self, s):
         v = int(float(s))
@@ -68,7 +71,7 @@ class KeyHandler(Interface):
                 self.label_xy.configure(text='x: %s y: %s x1: %s, y1: %s' % (x, y, self.p1[0], self.p1[1]))
             else:
                 self.label_xy.configure(text='x: %s y: %s' % (x, y))
-    
+
     # callback for left mouse release
     def off_mouse(self, event=None):
         x, y = event.x, event.y
@@ -106,7 +109,7 @@ class KeyHandler(Interface):
                 self.bbox_tv.insert('', 'end', str(len(self.bbox_tv.get_children())), values=values, tags = (str(self.class_ind)))
 
             self.p1 = self.mv_pt = None
-            
+
             # auto change to next class index if the current class index is not unknown
             if self.class_ind <= 4:
                 self.on_class_button(k=self.class_ind+1)
@@ -167,16 +170,16 @@ class KeyHandler(Interface):
                 self.msg('Already the first frame!')
             else:
                 self.msg('Already the first frame!')
-    
+
     # move to next frame
     def on_right(self, event=None, step=1):
         self.check_done()
-        
+
         if self.video_path is not None:
             if self.n_frame == self.total_frame:
                 self.msg('Already the last frame!')
             elif (self.n_frame + step) > self.total_frame:
-                self.n_frame = self.total_frame 
+                self.n_frame = self.total_frame
                 if self.n_frame in self.results.keys():
                     self.class_reindex()
                 else:
@@ -215,7 +218,7 @@ class KeyHandler(Interface):
                 self.msg('已經是最後一支影像了哦!')
         else:
             self.msg('只有一支影像哦!')
-    
+
     # move to previous done frame
     def on_prev_done(self, event=None):
         if self.video_path is not None:

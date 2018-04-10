@@ -1,5 +1,6 @@
 import copy
 import json
+import logging
 import os
 import time
 import tkinter as tk
@@ -13,6 +14,7 @@ from src.keyhandler import KeyHandler
 from src.utils import Utils
 
 N = 300
+LOGGER = logging.getLogger(__name__)
 
 class Labeler(tk.Frame, Utils, KeyHandler):
 

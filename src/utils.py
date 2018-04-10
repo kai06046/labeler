@@ -1,7 +1,10 @@
+import logging
+
 import cv2
 import numpy as np
 from PIL import Image, ImageTk
 
+LOGGER = logging.getLogger(__name__)
 COLOR = [(50, 205, 50), (255, 191, 0), (0, 0, 238), (211, 85, 186), (0, 165, 255)]
 label_text = {1: 'O', 2: 'X', 3: '=', 4: 'T', 5: '?'}
 

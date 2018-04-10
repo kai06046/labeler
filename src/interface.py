@@ -1,9 +1,12 @@
+import logging
 import os
 import tkinter as tk
 from glob import glob
 from tkinter import ttk
 from tkinter.filedialog import askdirectory, askopenfilename
 from tkinter.messagebox import askokcancel, showerror, showinfo, showwarning
+
+LOGGER = logging.getLogger(__name__)
 
 # FIXME: OOP structure
 class Interface(object):
