@@ -344,6 +344,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         # load previous label if file exists
         filename = self.video_path.split('.avi')[0] + '_label.txt'
         if os.path.isfile(filename):
+            LOGGER.info('Load label history - {}'.format(filename))
             with open(filename, 'r') as f:
                 data = f.readlines()
             self.results = {eval(l)[0]: eval(l)[1] for l in data}
@@ -389,17 +390,17 @@ class Labeler(tk.Frame, Utils, KeyHandler):
                 len(self.video_dirs) if self.video_dirs else 1
             )
             text_done_n_frame = '%s/%s' % (len(self.results.keys()), N)
-            self.label_video_name.configure(text='影像檔名: %s' % text_video_name)
 
             count_list = [value[0] for k, v in self.results.items() for value in v]
             v = [count_list.count(i) for i in range(1, 6)]
-            self.label_done_obj.configure(text="1: %s\n2: %s\n3: %s\n4: %s\n5: %s" % tuple(v))
 
             sec = round(self.n_frame / self.fps, 2)
             m, s = divmod(sec, 60)
             h, m = divmod(m, 60)
             text_time = "%d:%02d:%02d" % (h, m, s)
 
+            self.label_done_obj.configure(text="1: %s\n2: %s\n3: %s\n4: %s\n5: %s" % tuple(v))
+            self.label_video_name.configure(text='影像檔名: %s' % text_video_name)
             self.label_time.configure(text='影像時間: %s' % text_time)
             self.scale_n_frame.set(self.n_frame)
             self.label_n_frame.configure(text='%s/%s' % (self.n_frame, self.total_frame))
