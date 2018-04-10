@@ -22,7 +22,7 @@ class Interface(object):
         elif type == 'warning':
             showwarning('Warning', string)
         else:
-            print('Unknown type %s' % type)
+            LOGGER.warning('Unknown type %s' % type)
 
     # confirm quiting
     def on_close(self, event=None):
@@ -44,6 +44,7 @@ class Interface(object):
         if ok:
             self.init_all()
 
+    # load all video under given directory
     def get_dirs(self):
         dirs = askdirectory(title='請選擇影像檔案的路徑', initialdir='../')
 
@@ -52,15 +53,17 @@ class Interface(object):
         else:
             video_dirs = ["%s/%s" % (dirs, f) for f in os.listdir(dirs) if f[-3:] == 'avi']
             res = len(video_dirs) > 0
+            LOGGER.info('Load videos - {}'.format(video_dirs))
             if not res:
                 self.msg('該路徑底下沒有影像檔案。')
-                print(video_dirs)
+                LOGGER.debug(video_dirs)
             else:
                 self.video_dirs = video_dirs
                 return True
 
         return False
 
+    # load video
     def get_file(self):
         if os.name == 'nt':
             path = askopenfilename(
@@ -69,6 +72,7 @@ class Interface(object):
         else:
             path = askopenfilename(
                 title=u'請選擇影像檔案 (.avi)')
+        LOGGER.info('Load video - {}'.format(path))
 
         if not path:
             return False
