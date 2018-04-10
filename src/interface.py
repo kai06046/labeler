@@ -1,10 +1,11 @@
-import tkinter as tk
-from tkinter import ttk
-from tkinter.messagebox import askokcancel, showinfo, showerror, showwarning
-from tkinter.filedialog import askopenfilename, askdirectory
 import os
+import tkinter as tk
 from glob import glob
+from tkinter import ttk
+from tkinter.filedialog import askdirectory, askopenfilename
+from tkinter.messagebox import askokcancel, showerror, showinfo, showwarning
 
+# FIXME: OOP structure
 class Interface(object):
 
     # show message
@@ -43,11 +44,10 @@ class Interface(object):
     def get_dirs(self):
         dirs = askdirectory(title='請選擇影像檔案的路徑', initialdir='../')
 
-        if dirs in [None, ""]:
+        if not dirs:
             return False
         else:
             video_dirs = ["%s/%s" % (dirs, f) for f in os.listdir(dirs) if f[-3:] == 'avi']
-            # glob(os.path.join(dirs, '*.avi'))
             res = len(video_dirs) > 0
             if not res:
                 self.msg('該路徑底下沒有影像檔案。')
@@ -59,8 +59,15 @@ class Interface(object):
         return False
 
     def get_file(self):
-        path = askopenfilename(title='請選擇影像檔案', filetypes=[('video file (*.avi;)', '*.avi;')])
-        if path in [None, ""]:
+        if os.name == 'nt':
+            path = askopenfilename(
+                title=u'請選擇影像檔案 (.avi)',
+                filetypes=[('video file (*.avi;)', '*.avi;')])
+        else:
+            path = askopenfilename(
+                title=u'請選擇影像檔案 (.avi)')
+
+        if not path:
             return False
         else:
             res = os.path.isfile(path)
