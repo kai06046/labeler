@@ -97,6 +97,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.bind('<x>', self.on_delete)
         self.parent.bind('<r>', self.on_delete)
         self.parent.bind('<Control-s>', self.on_save)
+
         self.parent.bind('<Left>', self.on_left)
         self.parent.bind('<a>', self.on_left)
         self.parent.bind('<Up>', lambda event: self.on_left(event, step=100))
@@ -105,12 +106,14 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.bind('<d>', self.on_right)
         self.parent.bind('<Down>', lambda event: self.on_right(event, step=100))
         self.parent.bind('<s>', lambda event: self.on_right(event, step=100))
+
         self.parent.bind('<Control-a>', self.on_prev)
-        self.parent.bind('<Control-d>', self.on_next)
         self.parent.bind('<Control-Left>', self.on_prev)
+        self.parent.bind('<Control-d>', self.on_next)
         self.parent.bind('<Control-Right>', self.on_next)
         self.parent.bind('<Next>', self.on_next_done)
         self.parent.bind('<Prior>', self.on_prev_done)
+
         self.parent.bind('h', self.on_settings)
         self.bbox_tv.bind('<Control-a>', self.on_select_all)
         self.done_bbox_tv.bind('<Button-1>', self.tvitem_click)
@@ -224,7 +227,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         bboxlist_label_frame = ttk.LabelFrame(self.info_frame, text='Bounding boxes')
         bboxlist_label_frame.grid(row=0, column=0, sticky='news', padx=5)
 
-        img = ImageTk.PhotoImage(file='icons/delete.png')
+        img = ImageTk.PhotoImage(file=os.path.join('icons', 'delete.png'))
         delete_button = ttk.Button(bboxlist_label_frame, image=img, command=self.on_delete, cursor='hand2')
         delete_button.image = img
         delete_button.grid(row=0, column=0, sticky='e', padx=5)
@@ -301,9 +304,9 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         video_op_frame = tk.Frame(info_label_frame)
         video_op_frame.grid(row=5, column=0, sticky='news', padx=5, pady= 10)
 
-        img_next = ImageTk.PhotoImage(file='icons/next.png')
-        img_prev = ImageTk.PhotoImage(file='icons/prev.png')
-        img_save = ImageTk.PhotoImage(file='icons/save.png')
+        img_next = ImageTk.PhotoImage(file=os.path.join('icons', 'next.png'))
+        img_prev = ImageTk.PhotoImage(file=os.path.join('icons', 'prev.png'))
+        img_save = ImageTk.PhotoImage(file=os.path.join('icons', 'save.png'))
         b_prev = ttk.Button(video_op_frame, image=img_prev, command=self.on_prev, cursor='hand2')
         b_prev.image = img_prev
         b_prev.grid(row=0, column=0, sticky='news', padx=10, pady=0)
