@@ -31,8 +31,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.total_frame = None
         self.n_done_video = 0
         self.__video = None
-        self.__frame = None
-        self.__orig_frame = None
+        self.__frame__ = None
+        self.__orig_frame__ = None
         self.__image = None
 
         # variables for frame
@@ -82,8 +82,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
 
         # display label ratio relative to whole window
         self.parent.update_idletasks()
-        self._r_height = self.__frame.shape[0] / self.parent.winfo_reqheight()
-        self._r_width = self.__frame.shape[1] / self.parent.winfo_reqwidth()
+        self._r_height = self.__frame__.shape[0] / self.parent.winfo_reqheight()
+        self._r_width = self.__frame__.shape[1] / self.parent.winfo_reqwidth()
 
         # maximize the window
         if os.name == 'nt':
@@ -129,10 +129,10 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.parent.grid_columnconfigure(0, weight=1)
         self.parent.grid_columnconfigure(1, weight=1)
 
-        self.__frame = np.zeros((720, 1280, 3), dtype='uint8')
-        cv2.putText(self.__frame, 'Load Video', (300, 360), 7, 5, (255, 255, 255), 2)
-        self.__orig_frame = self.__frame.copy()
-        self.__image = ImageTk.PhotoImage(Image.fromarray(self.__frame))
+        self.__frame__ = np.zeros((720, 1280, 3), dtype='uint8')
+        cv2.putText(self.__frame__, 'Load Video', (300, 360), 7, 5, (255, 255, 255), 2)
+        self.__orig_frame__ = self.__frame__.copy()
+        self.__image = ImageTk.PhotoImage(Image.fromarray(self.__frame__))
 
         # display panel frame
         self.display_frame = tk.Frame(self.parent)
@@ -369,24 +369,25 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.update_frame()
         try:
             self.draw()
-            self.__image = ImageTk.PhotoImage(Image.fromarray(self.__frame))
+            self.__image = ImageTk.PhotoImage(Image.fromarray(self.__frame__))
             self.disply_l.configure(image=self.__image)
-        except:
-            pass
+        except Exception as e:
+            LOGGER.exception(e)
 
         self.disply_l.after(40, self.update_display)
 
     def update_frame(self):
         self.__video.set(cv2.CAP_PROP_POS_FRAMES, self.n_frame - 1)
-        ok, self.__frame = self.__video.read()
-        self.__orig_frame = self.__frame.copy()
+        ok, self.__frame__ = self.__video.read()
+        self.__orig_frame__ = self.__frame__.copy()
 
     def update_info(self):
         if self.video_path is not None:
             text_video_name = self.video_path.split('/')[-1]
-            text_n_video = '%s/%s' % (self.video_dirs.index(self.video_path) + 1 if self.video_dirs is not None else 1,\
-             len(self.video_dirs) if self.video_dirs is not None else 1)
-            # text_done_n_video = '%s/%s' % (self.n_done_video, len(self.video_dirs) if self.video_dirs is not None else 1)
+            text_n_video = '{}/{}'.format(
+                self.video_dirs.index(self.video_path) + 1 if self.video_dirs else 1,
+                len(self.video_dirs) if self.video_dirs else 1
+            )
             text_done_n_frame = '%s/%s' % (len(self.results.keys()), N)
             self.label_video_name.configure(text='影像檔名: %s' % text_video_name)
 
@@ -403,7 +404,6 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.scale_n_frame.set(self.n_frame)
             self.label_n_frame.configure(text='%s/%s' % (self.n_frame, self.total_frame))
             self.label_n_video.configure(text='影像 index: %s' % text_n_video)
-            # self.label_done_n_video.configure(text='已完成標註影像數: %s' % text_done_n_video)
             self.label_done_n_frame.configure(text='已完成標註幀數: %s' % text_done_n_frame)
 
         self.parent.after(100, self.update_info)
