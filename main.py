@@ -6,11 +6,7 @@ from src.app import Labeler
 
 LOGGER = logging.getLogger(__name__)
 LOGGERS = [
-	LOGGER,
-	logging.getLogger('src.app'),
-	logging.getLogger('src.interface'),
-	logging.getLogger('src.keyhandler'),
-	logging.getLogger('src.utils'),
+	LOGGER
 ]
 
 # parser = argparse.ArgumentParser(description='Some arguement for path connector')
