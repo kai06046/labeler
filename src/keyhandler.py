@@ -20,11 +20,10 @@ class KeyHandler(Interface):
                     b['state'] = 'normal'
                 else:
                     b['state'] = 'disabled'
-                try:
+
+                if self.results and self.n_frame in self.results:
                     if k in [v[0] for v in self.results[self.n_frame]]:
                         b['background'] = 'black'
-                except:
-                    pass
 
     # set value for frame index scalebar
     def set_n_frame(self, s):
@@ -146,7 +145,7 @@ class KeyHandler(Interface):
             if len(data) != 0:
                 with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
                     f.writelines(data)
-                print('%s 已存檔於 %s' % (file_name, self.root_dir))
+                LOGGER.info('%s 已存檔於 %s' % (file_name, self.root_dir))
 
     # move to previous frame
     def on_left(self, event=None, step=1):
