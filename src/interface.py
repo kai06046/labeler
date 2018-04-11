@@ -1,10 +1,14 @@
-import tkinter as tk
-from tkinter import ttk
-from tkinter.messagebox import askokcancel, showinfo, showerror, showwarning
-from tkinter.filedialog import askopenfilename, askdirectory
+import logging
 import os
+import tkinter as tk
 from glob import glob
+from tkinter import ttk
+from tkinter.filedialog import askdirectory, askopenfilename
+from tkinter.messagebox import askokcancel, showerror, showinfo, showwarning
 
+LOGGER = logging.getLogger(__name__)
+
+# FIXME: OOP structure
 class Interface(object):
 
     # show message
@@ -18,7 +22,7 @@ class Interface(object):
         elif type == 'warning':
             showwarning('Warning', string)
         else:
-            print('Unknown type %s' % type)
+            LOGGER.warning('Unknown type %s' % type)
 
     # confirm quiting
     def on_close(self, event=None):
@@ -39,28 +43,38 @@ class Interface(object):
 
         if ok:
             self.init_all()
-            
+
+    # load all video under given directory
     def get_dirs(self):
         dirs = askdirectory(title='請選擇影像檔案的路徑', initialdir='../')
 
-        if dirs in [None, ""]:
+        if not dirs:
             return False
         else:
             video_dirs = ["%s/%s" % (dirs, f) for f in os.listdir(dirs) if f[-3:] == 'avi']
-            # glob(os.path.join(dirs, '*.avi'))
             res = len(video_dirs) > 0
+            LOGGER.info('Load videos - {}'.format(video_dirs))
             if not res:
                 self.msg('該路徑底下沒有影像檔案。')
-                print(video_dirs)
+                LOGGER.debug(video_dirs)
             else:
                 self.video_dirs = video_dirs
                 return True
 
         return False
 
+    # load video
     def get_file(self):
-        path = askopenfilename(title='請選擇影像檔案', filetypes=[('video file (*.avi;)', '*.avi;')])
-        if path in [None, ""]:
+        if os.name == 'nt':
+            path = askopenfilename(
+                title=u'請選擇影像檔案 (.avi)',
+                filetypes=[('video file (*.avi;)', '*.avi;')])
+        else:
+            path = askopenfilename(
+                title=u'請選擇影像檔案 (.avi)')
+        LOGGER.info('Load video - {}'.format(path))
+
+        if not path:
             return False
         else:
             res = os.path.isfile(path)
@@ -125,10 +139,7 @@ class Interface(object):
         size = (settings_root.winfo_width(), settings_root.winfo_height())
         x = w/2 - size[0]/2
         y = h/2.25 - size[1]/2
-        # print("%dx%d+%d+%d" % (size + (x, y)))
-        r = 0 if master.state() == 'zoomed' else r
-        settings_root.geometry("%dx%d+%d+%d" % (size[0], size[1]+r, x, y))
+        settings_root.geometry("%dx%d+%d+%d" % (size[0], size[1], x, y))
 
         settings_root.bind('<Escape>', exit)
         settings_root.bind('<h>', exit)
-    
