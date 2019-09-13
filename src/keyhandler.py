@@ -3,9 +3,10 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import askokcancel
-
+from datetime import datetime
 from src.interface import Interface
 
+now = datetime.now
 N = 300
 LOGGER = logging.getLogger(__name__)
 
@@ -13,17 +14,30 @@ class KeyHandler(Interface):
 
     # change class index
     def on_class_button(self, k):
-        if not self.is_mv and k in range(1, 6):
+        if k in range(1, 6) and self.video_path is not None:
             self.class_ind = k
-            for i, b in enumerate(self.class_buttons):
-                if (k - 1) != i:
-                    b['state'] = 'normal'
-                else:
-                    b['state'] = 'disabled'
+            emo = "UNKNOWN"
+            if k == 1:
+                emo = "HAPPY"
+            elif k == 2:
+                emo = "SURPRISE"
+            elif k == 3:
+                emo = "NEUTRAL"
+            elif k == 4:
+                emo = "DISGUST"
+            elif k == 5:
+                emo = "FEAR"
+            values = (str(len(self.bbox_tv.get_children())+1), now().strftime("%Y%m%d%H%M%S%f")[:-3], emo)
+            self.bbox_tv.insert('', 'end', str(len(self.bbox_tv.get_children())), values=values)
+        else:
+            print("emotion class button gg...")
 
-                if self.results and self.n_frame in self.results:
-                    if k in [v[0] for v in self.results[self.n_frame]]:
-                        b['background'] = 'black'
+    def on_start(self, event=None):
+        self.video_path = now().strftime("%Y%m%d_%H%M%S") + ".avi"
+        self.init_all()
+        self.save_button.state(['!disabled'])
+        self.start_button.state(['disabled'])
+
 
     # set value for frame index scalebar
     def set_n_frame(self, s):
@@ -65,11 +79,11 @@ class KeyHandler(Interface):
                 x = min(int(x / self._c_width), int(self.width-1))
                 y = min(int(y / self._c_height), int(self.height-1))
 
-            if self.is_mv:
-                self.mv_pt = (x, y)
-                self.label_xy.configure(text='x: %s y: %s x1: %s, y1: %s' % (x, y, self.p1[0], self.p1[1]))
-            else:
-                self.label_xy.configure(text='x: %s y: %s' % (x, y))
+            # if self.is_mv:
+            #     self.mv_pt = (x, y)
+            #     self.label_xy.configure(text='x: %s y: %s x1: %s, y1: %s' % (x, y, self.p1[0], self.p1[1]))
+            # else:
+            #     self.label_xy.configure(text='x: %s y: %s' % (x, y))
 
     # callback for left mouse release
     def off_mouse(self, event=None):
@@ -116,12 +130,12 @@ class KeyHandler(Interface):
     # callback for delete button of treeview
     def on_delete(self, event=None):
         for v in self.bbox_tv.selection():
-            c, p1, p2 = tuple(self.bbox_tv.item(v)['values'])
-            p1, p2 = eval(','.join(p1.split(' '))), eval(','.join(p2.split(' ')))
-            values = (c, p1, p2)
-            self.results[self.n_frame].pop(self.results[self.n_frame].index(values))
-            if len(self.results[self.n_frame]) == 0:
-                del self.results[self.n_frame]
+            index, timestamp, emo = tuple(self.bbox_tv.item(v)['values'])
+            # p1, p2 = eval(','.join(p1.split(' '))), eval(','.join(p2.split(' ')))
+            # values = (c, p1, p2)
+            # self.results[self.n_frame].pop(self.results[self.n_frame].index(values))
+            # if len(self.results[self.n_frame]) == 0:
+            #     del self.results[self.n_frame]
 
             self.bbox_tv.delete(v)
 
@@ -133,19 +147,38 @@ class KeyHandler(Interface):
 
     # callback for save results
     def on_save(self, event=None):
-        if self.video_path is not None:
-            video_name = self.video_path.split('/')[-1]
-            file_name = video_name.split('.avi')[0] + '_label.txt'
 
+        if self.video_path is not None:
             data = []
-            for k in sorted(self.results.keys()):
-                boxes = self.results[k]
-                boxes = sorted(boxes, key=lambda x: x[0])
-                data.append('%s, %s\n' % (k, boxes))
-            if len(data) != 0:
-                with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
-                    f.writelines(data)
-                LOGGER.info('%s 已存檔於 %s' % (file_name, self.root_dir))
+            for line in self.bbox_tv.get_children():
+                # for value in self.bbox_tv.item(line)['values']:
+                v1, v2, v3 = tuple(self.bbox_tv.item(line)['values'])
+                data.append("%s,%s,%s\n" % (v1, v2, v3))
+
+
+            record_file = os.path.basename(self.video_path).split(".")[0] + ".csv"
+            with open(record_file, "w") as f:
+                f.writelines(data)
+
+            self.video_path = None
+            self.__is_live_stream = False
+
+            self.start_button.state(['!disabled'])
+            for x in self.bbox_tv.get_children():
+                self.bbox_tv.delete(x)
+
+            # video_name = self.video_path.split('/')[-1]
+            # file_name = video_name.split('.avi')[0] + '_label.txt'
+
+            # data = []
+            # for k in sorted(self.results.keys()):
+            #     boxes = self.results[k]
+            #     boxes = sorted(boxes, key=lambda x: x[0])
+            #     data.append('%s, %s\n' % (k, boxes))
+            # if len(data) != 0:
+            #     with open('%s/%s' % (self.root_dir, file_name), 'w+') as f:
+            #         f.writelines(data)
+            #     LOGGER.info('%s 已存檔於 %s' % (file_name, self.root_dir))
 
     # move to previous frame
     def on_left(self, event=None, step=1):
