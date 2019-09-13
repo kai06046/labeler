@@ -26,6 +26,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.root_dir = None
         self.video_dirs = None
         self.video_path = None
+        self.dir_path = None
         self.width = None
         self.height = None
         self.fps = None
@@ -118,29 +119,29 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.on_class_button(1)
         self.parent.bind("1", key_in)
 
-        self.parent.bind('<Left>', self.on_left)
-        self.parent.bind('<a>', self.on_left)
-        self.parent.bind('<Up>', lambda event: self.on_left(event, step=100))
-        self.parent.bind('<w>', lambda event: self.on_left(event, step=100))
-        self.parent.bind('<Right>', self.on_right)
-        self.parent.bind('<d>', self.on_right)
-        self.parent.bind('<Down>', lambda event: self.on_right(event, step=100))
-        self.parent.bind('<s>', lambda event: self.on_right(event, step=100))
+        # self.parent.bind('<Left>', self.on_left)
+        # self.parent.bind('<a>', self.on_left)
+        # self.parent.bind('<Up>', lambda event: self.on_left(event, step=100))
+        # self.parent.bind('<w>', lambda event: self.on_left(event, step=100))
+        # self.parent.bind('<Right>', self.on_right)
+        # self.parent.bind('<d>', self.on_right)
+        # self.parent.bind('<Down>', lambda event: self.on_right(event, step=100))
+        # self.parent.bind('<s>', lambda event: self.on_right(event, step=100))
 
-        self.parent.bind('<Control-a>', self.on_prev)
-        self.parent.bind('<Control-Left>', self.on_prev)
-        self.parent.bind('<Control-d>', self.on_next)
-        self.parent.bind('<Control-Right>', self.on_next)
-        self.parent.bind('<Next>', self.on_next_done)
-        self.parent.bind('<Prior>', self.on_prev_done)
+        # self.parent.bind('<Control-a>', self.on_prev)
+        # self.parent.bind('<Control-Left>', self.on_prev)
+        # self.parent.bind('<Control-d>', self.on_next)
+        # self.parent.bind('<Control-Right>', self.on_next)
+        # self.parent.bind('<Next>', self.on_next_done)
+        # self.parent.bind('<Prior>', self.on_prev_done)
 
-        self.parent.bind('h', self.on_settings)
+        # self.parent.bind('h', self.on_settings)
         self.bbox_tv.bind('<Control-a>', self.on_select_all)
         # self.done_bbox_tv.bind('<Button-1>', self.tvitem_click)
 
     def create_ui(self):
 
-        self.create_menu()
+        # self.create_menu()
 
         self.parent.grid_rowconfigure(0, weight=1)
         self.parent.grid_rowconfigure(1, weight=1)
@@ -220,8 +221,11 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         button_label_frame.grid_rowconfigure(0, weight=1)
         button_label_frame.grid_columnconfigure(0, weight=1)
 
+        left_descrip_text = ttk.Label(button_label_frame, text="Click the button or the respectively index number key to annotate. \nFor example, press 1 on keyboard is equal to click HAPPY button.")
+        left_descrip_text.grid(row=0, column=0, sticky='w')
+
         button_frame = tk.Frame(button_label_frame)
-        button_frame.grid(row=0, column=0)
+        button_frame.grid(row=1, column=0)
 
         for i in range(1, 6):
             img = ImageTk.PhotoImage(file='icons/%s.jpg' % i)
@@ -402,24 +406,16 @@ class Labeler(tk.Frame, Utils, KeyHandler):
 
     def update_info(self):
         if self.video_path is not None:
-            text_video_name = self.video_path
-            text_n_video = "empty"
-            # text_n_video = '{}/{}'.format(
-            #     self.video_dirs.index(self.video_path) + 1 if self.video_dirs else 1,
-            #     len(self.video_dirs) if self.video_dirs else 1
-            # )
-            # text_done_n_frame = '%s/%s' % (len(self.results.keys()), N)
-
-            # count_list = [value[0] for k, v in self.results.items() for value in v]
-            # v = [count_list.count(i) for i in range(1, 6)]
-
-            # sec = round(self.n_frame / self.fps, 2)
-            # m, s = divmod(sec, 60)
-            # h, m = divmod(m, 60)
-            # text_time = "%d:%02d:%02d" % (h, m, s)
+            text_video_name = "Video Name: " + os.path.basename(self.video_path)
+            text_desc = "Description: This is a sample annotation."
+        else:
+            text_video_name = '-----'
+            text_desc = 'Description: -----'
 
             # self.label_done_obj.configure(text="1: %s\n2: %s\n3: %s\n4: %s\n5: %s" % tuple(v))
-            self.label_video_name.configure(text='Video Name: %s' % text_video_name)
+        self.label_video_name.configure(text='Video Name: %s' % text_video_name)
+            # self.label_desc = ttk.Label(info_label_frame, text='Description:  %s' % text_desc)
+        self.label_desc.configure(text=text_desc)
             # self.label_time.configure(text='影像時間: %s' % text_time)
             # self.scale_n_frame.set(self.n_frame)
             # self.label_n_frame.configure(text='%s/%s' % (self.n_frame, self.total_frame))

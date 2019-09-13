@@ -33,7 +33,11 @@ class KeyHandler(Interface):
             print("emotion class button gg...")
 
     def on_start(self, event=None):
-        self.video_path = now().strftime("%Y%m%d_%H%M%S") + ".avi"
+        current_time = now().strftime("%Y%m%d_%H%M%S")
+        self.dir_path = os.path.join("results", current_time)
+        if not os.path.isdir(self.dir_path):
+            os.makedirs(self.dir_path)
+        self.video_path = os.path.join(self.dir_path, current_time + ".avi")
         self.init_all()
         self.save_button.state(['!disabled'])
         self.start_button.state(['disabled'])
@@ -155,8 +159,7 @@ class KeyHandler(Interface):
                 v1, v2, v3 = tuple(self.bbox_tv.item(line)['values'])
                 data.append("%s,%s,%s\n" % (v1, v2, v3))
 
-
-            record_file = os.path.basename(self.video_path).split(".")[0] + ".csv"
+            record_file = os.path.join(self.dir_path, os.path.basename(self.video_path).split(".")[0] + ".csv")
             with open(record_file, "w") as f:
                 f.writelines(data)
 
@@ -164,6 +167,8 @@ class KeyHandler(Interface):
             self.__is_live_stream = False
 
             self.start_button.state(['!disabled'])
+            self.save_button.state(['disabled'])
+
             for x in self.bbox_tv.get_children():
                 self.bbox_tv.delete(x)
 
