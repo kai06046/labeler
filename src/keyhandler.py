@@ -62,6 +62,7 @@ class KeyHandler(Interface):
 
             else:
                 self.video_path = path
+                # self.dir_path = os.path.dirname(video_path)
 
                 with open(record_path, 'r') as f:
                     data = f.readlines()
@@ -179,26 +180,39 @@ class KeyHandler(Interface):
 
     # callback for save results
     def on_save(self, event=None):
-        pass
-        # if self.video_path is not None:
-        #     data = []
-        #     for line in self.bbox_tv.get_children():
-        #         # for value in self.bbox_tv.item(line)['values']:
-        #         v1, v2, v3, v4 = tuple(self.bbox_tv.item(line)['values'])
-        #         data.append("%s,%s,%s,%s\n" % (v1, v2, v3, v4))
+        # pass
+        if self.video_path is not None:
+            data = []
+            for line in self.bbox_tv.get_children():
+                # for value in self.bbox_tv.item(line)['values']:
+                v1, v2, v3, v4 = tuple(self.bbox_tv.item(line)['values'])
+            for i, n_frame in enumerate(sorted(self.results.keys())):
+                emo = self.results[n_frame]["meta"][1]
+                bbox = self.results[n_frame]["xy"]
+                if bbox is None:
+                    xmin = ymin = xmax = ymax = 0
+                else:
+                    p1, p2 = bbox
+                    xmin, ymin = p1
+                    xmax, ymax = p2
+                try:
+                    data.append("%s,%s,%s,%s,%s,%s,%s\n" % (i, n_frame, emo, xmin, ymin, xmax, ymax))
+                except:
+                    print(Exception, "\n", (i, n_frame, emo, xmin, ymin, xmax, ymax))
 
-        #     record_file = os.path.join(self.dir_path, os.path.basename(self.video_path).split(".")[0] + ".csv")
-        #     with open(record_file, "w") as f:
-        #         f.writelines(data)
+            record_file = self.video_path.replace(".avi", "_record.csv")
+            print(record_file)
+            with open(record_file, "w") as f:
+                f.writelines(data)
 
-        #     self.video_path = None
-        #     self.__is_live_stream = False
+            self.video_path = None
+            self.__is_live_stream = False
 
-        #     self.start_button.state(['!disabled'])
-        #     self.save_button.state(['disabled'])
+            self.start_button.state(['!disabled'])
+            self.save_button.state(['disabled'])
 
-        #     for x in self.bbox_tv.get_children():
-        #         self.bbox_tv.delete(x)
+            for x in self.bbox_tv.get_children():
+                self.bbox_tv.delete(x)
 
             # video_name = self.video_path.split('/')[-1]
             # file_name = video_name.split('.avi')[0] + '_label.txt'
