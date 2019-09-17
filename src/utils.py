@@ -16,15 +16,15 @@ class Utils(object):
         # draw bounding boxes
         if self.video_path is not None:
             if self.n_frame in self.results.keys():
-                boxes = self.results[self.n_frame]
-                for b in boxes:
-                    class_ind, p1, p2 = b
-                    color = COLOR[class_ind - 1]
-                    if self.is_mv and (self.class_ind == class_ind and self.class_ind != 5):
-                        continue
-                    cv2.rectangle(self.__frame__, p1, p2, color, 1)
-                    cv2.putText(self.__frame__, label_text[class_ind], (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255), 3)
-                    cv2.putText(self.__frame__, label_text[class_ind], (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, color, 1)
+                boxes = self.results[self.n_frame]["xy"]
+                if boxes is not None:
+                    p1, p2 = boxes
+                    # color = COLOR[class_ind - 1]
+                    # if self.is_mv and (self.class_ind == class_ind and self.class_ind != 5):
+                    #     continue
+                    cv2.rectangle(self.__frame__, p1, p2, (220, 10, 10), 2)
+                        # cv2.putText(self.__frame__, label_text[class_ind], (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255), 3)
+                        # cv2.putText(self.__frame__, label_text[class_ind], (p1[0], p1[1] - 10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, color, 1)
 
             if self.is_mv and self.mv_pt is not None and self.p1 is not None:
                 color = COLOR[self.class_ind - 1]
@@ -32,9 +32,9 @@ class Utils(object):
                 ymin = min(self.p1[1], self.mv_pt[1])
                 xmax = max(self.p1[0], self.mv_pt[0])
                 ymax = max(self.p1[1], self.mv_pt[1])
-                cv2.rectangle(self.__frame__, (xmin, ymin), (xmax, ymax), color, 1)
-                cv2.putText(self.__frame__, label_text[self.class_ind], (xmin, ymin-10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255), 3)
-                cv2.putText(self.__frame__, label_text[self.class_ind], (xmin, ymin-10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, color, 1)
+                cv2.rectangle(self.__frame__, (xmin, ymin), (xmax, ymax), (220, 10, 10), 2)
+                # cv2.putText(self.__frame__, label_text[self.class_ind], (xmin, ymin-10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, (255, 255, 255), 3)
+                # cv2.putText(self.__frame__, label_text[self.class_ind], (xmin, ymin-10), cv2.FONT_HERSHEY_TRIPLEX, 0.7, color, 1)
 
         if self.parent.state() == 'zoomed':
             shape = self.__frame__.shape

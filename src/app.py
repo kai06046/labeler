@@ -33,6 +33,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.resolution = None
         self.total_frame = None
         self.n_done_video = 0
+        self.selected_index = None
+        self.emo_class = None
         self.__video = cv2.VideoCapture("icons/wise-ai.mp4")
         # self.__video = None
         self.__frame__ = None
@@ -75,7 +77,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         # UI
         title_path = os.path.abspath(os.path.join('icons', 'wiseai.ico'))
         self.parent = tk.Tk()
-        self.parent.title('WiseAI Video Annotation Tool')
+        self.parent.title('WiseAI Annotation Inspector')
         if os.name == 'nt':
             self.parent.iconbitmap(title_path)
         self.parent.protocol('WM_DELETE_WINDOW', self.on_close)
@@ -114,10 +116,10 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         # for i in range(1, 6):
         #     func = lambda event: self.on_class_button(k=i)
         #     self.parent.bind(str(i), func)
-        def key_in(event):
-            print(event)
-            self.on_class_button(1)
-        self.parent.bind("1", key_in)
+        # def key_in(event):
+        #     print(event)
+        #     self.on_class_button(1)
+        self.parent.bind("1", lambda event: self.on_class_button(1))
 
         # self.parent.bind('<Left>', self.on_left)
         # self.parent.bind('<a>', self.on_left)
@@ -178,6 +180,7 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.op_frame.grid_rowconfigure(0, weight=1)
         self.op_frame.grid_rowconfigure(1, weight=1)
         self.op_frame.grid_columnconfigure(0, weight=1)
+        self.create_scale()
         self.create_button()
         # self.op_frame.update()
         # print("op frame:", self.op_frame.winfo_width(), self.op_frame.winfo_height())
@@ -205,27 +208,27 @@ class Labeler(tk.Frame, Utils, KeyHandler):
 
         menu_file = tk.Menu(menu)
         # menu_file.add_command(label='載入影像檔案路徑', command=lambda type_='dir': self.on_load(type=type_))
-        # menu_file.add_command(label='載入影像檔案', command=lambda type_='file': self.on_load(type=type_))
-        menu_file.add_command(label='儲存', command=self.on_save)
+        menu_file.add_command(label='載入影像檔案', command=lambda type_='file': self.on_load(type=type_))
+        # menu_file.add_command(label='儲存', command=self.on_save)
 
-        menu_help = tk.Menu(menu)
-        menu_help.add_command(label='Hotkeys', command=self.on_settings)
+        # menu_help = tk.Menu(menu)
+        # menu_help.add_command(label='Hotkeys', command=self.on_settings)
 
         # menu.add_cascade(label='File', menu=menu_file)
-        menu.add_cascade(label='Help', menu=menu_help)
+        # menu.add_cascade(label='Help', menu=menu_help)
 
     def create_button(self):
 
-        button_label_frame = ttk.LabelFrame(self.op_frame, text='Emotion Tag')
-        button_label_frame.grid(row=0, column=0, sticky='news')
+        button_label_frame = ttk.LabelFrame(self.op_frame)
+        button_label_frame.grid(row=1, column=0, sticky='news')
         button_label_frame.grid_rowconfigure(0, weight=1)
         button_label_frame.grid_columnconfigure(0, weight=1)
 
-        left_descrip_text = ttk.Label(button_label_frame, text="Click the button or the respectively index number key to annotate. \nFor example, press 1 on keyboard is equal to click HAPPY button.")
-        left_descrip_text.grid(row=0, column=0, sticky='w')
+        # left_descrip_text = ttk.Label(button_label_frame)
+        # left_descrip_text.grid(row=0, column=0, sticky='w')
 
         button_frame = tk.Frame(button_label_frame)
-        button_frame.grid(row=1, column=0)
+        button_frame.grid(row=0, column=0)
 
         for i in range(1, 6):
             img = ImageTk.PhotoImage(file='icons/%s.jpg' % i)
@@ -238,8 +241,35 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.parent.bind('%s' % i, lambda event, k=i: self.on_class_button(k=k))
             self.class_buttons.append(b)
 
+        button_frame_op = tk.Frame(button_label_frame)
+        button_frame_op.grid(row=0, column=1)
+
+        img = ImageTk.PhotoImage(file='icons/prev.png')
+        b = ttk.Button(button_frame_op, image=img, command=self.on_prev, cursor='hand2')
+        b.image = img
+        b.grid(row=0, column=0, sticky='news', padx=10, pady=0)
+
+        img = ImageTk.PhotoImage(file='icons/next.png')
+        b = ttk.Button(button_frame_op, image=img, command=self.on_next, cursor='hand2')
+        b.image = img
+        b.grid(row=0, column=1, sticky='news', padx=10, pady=0)
+
+    def create_scale(self):
+        scale_frame = tk.Frame(self.op_frame)
+        scale_frame.grid(row=0, column=0, sticky='news')
+
+        scale_frame.grid_rowconfigure(0, weight=1)
+        scale_frame.grid_columnconfigure(0, weight=1)
+
+        self.label_n_frame = ttk.Label(scale_frame, text='--/--')
+        self.label_n_frame.grid(row=0, column=0, padx=5)
+        self.scale_n_frame = ttk.Scale(scale_frame, from_=1, to=self.total_frame, command=self.set_n_frame)
+        self.scale_n_frame.set(int(self.n_frame/2))
+        self.scale_n_frame.state(['disabled'])
+        self.scale_n_frame.grid(row=1, column=0, padx=0, sticky='news')
+
     def create_bbox_tv(self):
-        bboxlist_label_frame = ttk.LabelFrame(self.info_frame, text='Emotion Record')
+        bboxlist_label_frame = ttk.LabelFrame(self.info_frame, text='Annotation')
         bboxlist_label_frame.grid(row=0, column=0, sticky='news', padx=5)
 
         img = ImageTk.PhotoImage(file=os.path.join('icons', 'delete.png'))
@@ -248,17 +278,17 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         delete_button.grid(row=0, column=0, sticky='e', padx=5)
 
         self.bbox_tv = ttk.Treeview(bboxlist_label_frame, height=10)
-        self.bbox_tv['columns'] = ('i', 'f', 'ts', 'emo')
+        self.bbox_tv['columns'] = ('i', 'f', 'emo', 'xy')
         self.bbox_tv.heading('#0', text='', anchor='center')
         self.bbox_tv.column('#0', anchor='w', width=0)
         self.bbox_tv.heading('i', text='Index')
-        self.bbox_tv.column('i', anchor='center', width=70)
+        self.bbox_tv.column('i', anchor='center', width=45)
         self.bbox_tv.heading('f', text='nframe')
-        self.bbox_tv.column('f', anchor='center', width=70)
-        self.bbox_tv.heading('ts', text='Timestamp')
-        self.bbox_tv.column('ts', anchor='center', width=180)
+        self.bbox_tv.column('f', anchor='center', width=50)
         self.bbox_tv.heading('emo', text='Emotion')
-        self.bbox_tv.column('emo', anchor='center', width=120)
+        self.bbox_tv.column('emo', anchor='center', width=90)
+        self.bbox_tv.heading('xy', text='Coordinate')
+        self.bbox_tv.column('xy', anchor='center', width=150)
         self.bbox_tv.grid(row=1, column=0, sticky='news', padx=5)
 
         # define color
@@ -318,10 +348,10 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         if self.__video is not None:
             self.__video.release()
 
-        self.__video = cv2.VideoCapture(0)
+        self.__video = cv2.VideoCapture(self.video_path)
         self.__is_live_stream = True
         self.__use_bg = False
-        self.__writer = cv2.VideoWriter(self.video_path, cv2.VideoWriter_fourcc('M','J','P','G'), 25, (WIDTH, HEIGHT))
+        # self.__writer = cv2.VideoWriter(self.video_path, cv2.VideoWriter_fourcc('M','J','P','G'), 25, (WIDTH, HEIGHT))
         self.width = WIDTH
         self.height = HEIGHT
         self.fps = int(self.__video.get(5))
@@ -346,24 +376,48 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.init_video()
 
         # load previous label if file exists
-        filename = self.video_path.split('.avi')[0] + '_label.txt'
-        if os.path.isfile(filename):
-            LOGGER.info('Load label history - {}'.format(filename))
-            with open(filename, 'r') as f:
-                data = f.readlines()
-            self.results = {eval(l)[0]: eval(l)[1] for l in data}
-        else:
-            self.results = dict()
+        # filename = self.video_path.split('.avi')[0] + '_label.txt'
+        # if os.path.isfile(filename):
+        #     LOGGER.info('Load label history - {}'.format(filename))
+        #     with open(filename, 'r') as f:
+        #         data = f.readlines()
+        #     self.results = {eval(l)[0]: eval(l)[1] for l in data}
+        # else:
+        # self.results = dict()
 
         # change class index
-        self.n_frame = 1
+        for i in sorted(self.results.keys()):
+            if self.results[i]["xy"] is None:
+                self.n_frame = int(i)
+                self.selected_index = int(self.results[i]["meta"][0])
+                self.current_emo_class = self.results[i]["meta"][1]
+                break
+
+
+        emo = "UNKNOWN"
+        if self.current_emo_class == "HAPPY":
+            k = 1            
+        elif self.current_emo_class == "SURPRISE":
+            k = 2
+        elif self.current_emo_class == "NEUTRAL":
+            k == 3
+        elif self.current_emo_class == "DISGUST":
+            k = 4
+        elif self.current_emo_class == "FEAR":
+            k = 5
+
+        for i, b in enumerate(self.class_buttons):
+            if (k - 1) != i:
+                b['state'] = 'normal'
+            else:
+                b['state'] = 'disabled'
         # if self.n_frame in self.results.keys():
         #     self.class_reindex()
         # else:
         #     self.on_class_button(k=1)
 
         # update treeview rows
-        # self.update_treeview()
+        self.update_treeview()
 
         # change scalebar state
         # self.scale_n_frame.state(['!disabled'])
@@ -392,7 +446,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         self.disply_l.after(40, self.update_display)
 
     def update_frame(self):
-        # self.__video.set(cv2.CAP_PROP_POS_FRAMES, self.n_frame - 1)
+        if not self.__use_bg:
+            self.__video.set(cv2.CAP_PROP_POS_FRAMES, self.n_frame - 1)
         ok, self.__frame__ = self.__video.read()
 
         # if run finish demo video, loop it again
@@ -400,12 +455,14 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.__video.release()
             self.__video = cv2.VideoCapture("icons/wise-ai.mp4")
             ok, self.__frame__ = self.__video.read()
-        else:
-            self.n_frame += 1
+        elif not ok:
+            self.__video.release()
+            self.__video = cv2.VideoCapture(self.video_path)
+            ok, self.__frame__ = self.__video.read()
 
         self.__frame__ = cv2.resize(self.__frame__, (WIDTH, HEIGHT))
-        if self.__is_live_stream:
-            self.__writer.write(self.__frame__)
+        # if self.__is_live_stream:
+        #     self.__writer.write(self.__frame__)
         self.__orig_frame__ = self.__frame__.copy()
 
     def update_info(self):
@@ -431,6 +488,20 @@ class Labeler(tk.Frame, Utils, KeyHandler):
     def update_treeview(self):
         for x in self.bbox_tv.get_children():
             self.bbox_tv.delete(x)
+
+        for nf in sorted(self.results.keys()):
+            ind, emo = self.results[nf]["meta"]
+            xy = self.results[nf]["xy"]
+            xy_v = "(%d, %d), (%d, %d)" % (xy[0], xy[1], xy[2], xy[3]) if xy is not None else "(0, 0), (0, 0)"
+            values = (ind, nf, emo, xy_v)
+            self.bbox_tv.insert('', 'end', str(len(self.bbox_tv.get_children())), values=values)
+
+            # add selection focus
+            if nf == self.n_frame:
+                child_id = self.bbox_tv.get_children()[-1]
+                self.bbox_tv.focus(child_id)
+                self.bbox_tv.selection_set(child_id)
+
 
     def class_reindex(self):
         existed_class = [v[0] for v in self.results[self.n_frame]]

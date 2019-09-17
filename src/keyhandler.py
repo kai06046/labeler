@@ -3,6 +3,7 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import askokcancel
+from tkinter.filedialog import askopenfilename
 from datetime import datetime
 from src.interface import Interface
 
@@ -16,32 +17,59 @@ class KeyHandler(Interface):
     def on_class_button(self, k):
         if k in range(1, 6) and self.video_path is not None:
             self.class_ind = k
+
+
             emo = "UNKNOWN"
             if k == 1:
-                emo = "HAPPY"
+                self.current_emo_class = "HAPPY"
             elif k == 2:
-                emo = "SURPRISE"
+                self.current_emo_class = "SURPRISE"
             elif k == 3:
-                emo = "NEUTRAL"
+                self.current_emo_class = "NEUTRAL"
             elif k == 4:
-                emo = "DISGUST"
+                self.current_emo_class = "DISGUST"
             elif k == 5:
-                emo = "FEAR"
-            values = (str(len(self.bbox_tv.get_children())+1), self.n_frame, now().strftime("%Y%m%d%H%M%S%f")[:-3], emo)
-            self.bbox_tv.insert('', 'end', str(len(self.bbox_tv.get_children())), values=values)
-        else:
-            print("emotion class button gg...")
+                self.current_emo_class = "FEAR"
+
+            for i, b in enumerate(self.class_buttons):
+                if (k - 1) != i:
+                    b['state'] = 'normal'
+                else:
+                    b['state'] = 'disabled'
+            # values = (str(len(self.bbox_tv.get_children())+1), self.n_frame, now().strftime("%Y%m%d%H%M%S%f")[:-3], emo)
+            # self.bbox_tv.insert('', 'end', str(len(self.bbox_tv.get_children())), values=values)
+        # else:
+        #     print("emotion class button gg...")
 
     def on_start(self, event=None):
-        current_time = now().strftime("%Y%m%d_%H%M%S")
-        self.dir_path = os.path.join("results", current_time)
-        if not os.path.isdir(self.dir_path):
-            os.makedirs(self.dir_path)
-        self.video_path = os.path.join(self.dir_path, current_time + ".avi")
-        self.init_all()
-        self.save_button.state(['!disabled'])
-        self.start_button.state(['disabled'])
+        if os.name == 'nt':
+            path = askopenfilename(
+                title=u'請選擇影像檔案 (.avi)',
+                filetypes=[('video file (*.avi;)', '*.avi;')])
+        else:
+            path = askopenfilename(
+                title=u'請選擇影像檔案 (.avi)')
+        if not path:
+            self.msg("gg, file not found")
+        else:
+            record_path = path.replace(".avi", ".csv")
+            res = os.path.isfile(path) and os.path.isfile(record_path)
+            if not res:
+                if os.path.isfile(record_path):
+                    self.msg('請選擇正確的影像檔案。')
+                else:
+                    self.msg("Cannot find %s" % record_path)
 
+            else:
+                self.video_path = path
+
+                with open(record_path, 'r') as f:
+                    data = f.readlines()
+                    data = [l.replace("\n", "").split(",") for l in data]
+                self.results = {int(l[1]): {"meta":(l[0], l[3]), "xy": None} for l in data}
+                self.init_all()
+                self.save_button.state(['!disabled'])
+                self.start_button.state(['disabled'])
 
     # set value for frame index scalebar
     def set_n_frame(self, s):
@@ -57,6 +85,7 @@ class KeyHandler(Interface):
                 y = int(y / self._c_height)
             self.p1 = (x, y)
             self.is_mv = True
+            self.results[self.n_frame]["xy"] = None
 
     # callback for right mouse click
     def on_r_mouse(self, event=None):
@@ -83,8 +112,8 @@ class KeyHandler(Interface):
                 x = min(int(x / self._c_width), int(self.width-1))
                 y = min(int(y / self._c_height), int(self.height-1))
 
-            # if self.is_mv:
-            #     self.mv_pt = (x, y)
+            if self.is_mv:
+                self.mv_pt = (x, y)
             #     self.label_xy.configure(text='x: %s y: %s x1: %s, y1: %s' % (x, y, self.p1[0], self.p1[1]))
             # else:
             #     self.label_xy.configure(text='x: %s y: %s' % (x, y))
@@ -104,37 +133,35 @@ class KeyHandler(Interface):
             ymax = max(self.p1[1], y)
             self.p1 = (xmin, ymin)
             self.mv_pt = (xmax, ymax)
-            values = (self.class_ind, self.p1, self.mv_pt)
+            values = (self.selected_index, self.n_frame, self.current_emo_class, "(%d,%d), (%d,%d)" % (xmin, ymin, xmax, ymax))
             if self.n_frame not in self.results.keys():
-                self.results[self.n_frame] = [values]
+                # self.results[self.n_frame] = [values]
+                self.results[self.n_frame] = {"meta": (len(self.bbox_tv.get_children()), self.current_emo_class), "xy": (self.p1, self.mv_pt)}
             else:
-                existed_class = [v[0] for v in self.results[self.n_frame]]
-                if self.class_ind in existed_class and self.class_ind != 5:
-                    ind = existed_class.index(self.class_ind)
-                    self.results[self.n_frame][ind] = values
-                else:
-                    self.results[self.n_frame].append(values)
+                # existed_class = [v[0] for v in self.results[self.n_frame]]
+                self.results[self.n_frame]["xy"] = (self.p1, self.mv_pt)
 
-            # edit box for existed class
-            if self.class_ind in [self.bbox_tv.item(item)['values'][0] for item in self.bbox_tv.get_children()] and self.class_ind != 5:
+            # edit box for existed coordinate
+            if self.n_frame in [int(self.bbox_tv.item(item)['values'][1]) for item in self.bbox_tv.get_children()]:
                 for item in self.bbox_tv.get_children():
-                    if self.bbox_tv.item(item)['values'][0] == self.class_ind:
+                    if int(self.bbox_tv.item(item)['values'][1]) == self.n_frame:
                         self.bbox_tv.item(item, values=values)
                         break
             # else add new row in treeview
             else:
-                self.bbox_tv.insert('', 'end', str(len(self.bbox_tv.get_children())), values=values, tags = (str(self.class_ind)))
+                self.bbox_tv.insert('', 'end', str(len(self.bbox_tv.get_children())), values=values)
 
             self.p1 = self.mv_pt = None
 
             # auto change to next class index if the current class index is not unknown
-            if self.class_ind <= 4:
-                self.on_class_button(k=self.class_ind+1)
+            # if self.class_ind <= 4:
+            #     self.on_class_button(k=self.class_ind+1)
 
     # callback for delete button of treeview
     def on_delete(self, event=None):
         for v in self.bbox_tv.selection():
-            # index, timestamp, emo = tuple(self.bbox_tv.item(v)['values'])
+            index, n_frame, emo, xy = tuple(self.bbox_tv.item(v)['values'])
+            del self.results[int(n_frame)]
             # p1, p2 = eval(','.join(p1.split(' '))), eval(','.join(p2.split(' ')))
             # values = (c, p1, p2)
             # self.results[self.n_frame].pop(self.results[self.n_frame].index(values))
@@ -142,6 +169,7 @@ class KeyHandler(Interface):
             #     del self.results[self.n_frame]
 
             self.bbox_tv.delete(v)
+
 
     # callback for select rows in treeview
     def on_select_all(self, event=None):
@@ -151,26 +179,26 @@ class KeyHandler(Interface):
 
     # callback for save results
     def on_save(self, event=None):
+        pass
+        # if self.video_path is not None:
+        #     data = []
+        #     for line in self.bbox_tv.get_children():
+        #         # for value in self.bbox_tv.item(line)['values']:
+        #         v1, v2, v3, v4 = tuple(self.bbox_tv.item(line)['values'])
+        #         data.append("%s,%s,%s,%s\n" % (v1, v2, v3, v4))
 
-        if self.video_path is not None:
-            data = []
-            for line in self.bbox_tv.get_children():
-                # for value in self.bbox_tv.item(line)['values']:
-                v1, v2, v3, v4 = tuple(self.bbox_tv.item(line)['values'])
-                data.append("%s,%s,%s,%s\n" % (v1, v2, v3, v4))
+        #     record_file = os.path.join(self.dir_path, os.path.basename(self.video_path).split(".")[0] + ".csv")
+        #     with open(record_file, "w") as f:
+        #         f.writelines(data)
 
-            record_file = os.path.join(self.dir_path, os.path.basename(self.video_path).split(".")[0] + ".csv")
-            with open(record_file, "w") as f:
-                f.writelines(data)
+        #     self.video_path = None
+        #     self.__is_live_stream = False
 
-            self.video_path = None
-            self.__is_live_stream = False
+        #     self.start_button.state(['!disabled'])
+        #     self.save_button.state(['disabled'])
 
-            self.start_button.state(['!disabled'])
-            self.save_button.state(['disabled'])
-
-            for x in self.bbox_tv.get_children():
-                self.bbox_tv.delete(x)
+        #     for x in self.bbox_tv.get_children():
+        #         self.bbox_tv.delete(x)
 
             # video_name = self.video_path.split('/')[-1]
             # file_name = video_name.split('.avi')[0] + '_label.txt'
@@ -232,29 +260,51 @@ class KeyHandler(Interface):
 
     # move to previous video
     def on_prev(self, event=None):
-        if self.video_dirs is not None:
-            current = self.video_dirs.index(self.video_path)
-            if current > 0:
-                self.on_save()
-                self.video_path = self.video_dirs[current-1]
-                self.init_all()
-            else:
-                self.msg('已經是第一支影像了哦!')
+        if self.selected_index > 1:
+            self.selected_index -= 1
+            self.n_frame = sorted(self.results.keys())[self.selected_index-1]
+            self.current_emo_class = self.results[self.n_frame]["meta"][1]
+
+            child_id = self.bbox_tv.get_children()[self.selected_index-1]
+            self.bbox_tv.focus(child_id)
+            self.bbox_tv.selection_set(child_id)
+
         else:
-            self.msg('只有一支影像哦!')
+            self.msg("This is the first bookmark already")
+        # if self.video_dirs is not None:
+        #     current = self.video_dirs.index(self.video_path)
+        #     if current > 0:
+        #         self.on_save()
+        #         self.video_path = self.video_dirs[current-1]
+        #         self.init_all()
+        #     else:
+        #         self.msg('已經是第一支影像了哦!')
+        # else:
+        #     self.msg('只有一支影像哦!')
 
     # move to next video
     def on_next(self, event=None):
-        if self.video_dirs is not None:
-            current = self.video_dirs.index(self.video_path)
-            if current+1 < len(self.video_dirs):
-                self.on_save()
-                self.video_path = self.video_dirs[current+1]
-                self.init_all()
-            else:
-                self.msg('已經是最後一支影像了哦!')
+        if self.selected_index < len(self.bbox_tv.get_children()):
+            self.selected_index += 1
+            self.n_frame = sorted(self.results.keys())[self.selected_index-1]
+            self.current_emo_class = self.results[self.n_frame]["meta"][1]
+
+            child_id = self.bbox_tv.get_children()[self.selected_index-1]
+            self.bbox_tv.focus(child_id)
+            self.bbox_tv.selection_set(child_id)
+
         else:
-            self.msg('只有一支影像哦!')
+            self.msg("This is the last bookmark already")
+        # if self.video_dirs is not None:
+        #     current = self.video_dirs.index(self.video_path)
+        #     if current+1 < len(self.video_dirs):
+        #         self.on_save()
+        #         self.video_path = self.video_dirs[current+1]
+        #         self.init_all()
+        #     else:
+        #         self.msg('已經是最後一支影像了哦!')
+        # else:
+        #     self.msg('只有一支影像哦!')
 
     # move to previous done frame
     def on_prev_done(self, event=None):
