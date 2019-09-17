@@ -27,7 +27,7 @@ class Interface(object):
     # confirm quiting
     def on_close(self, event=None):
         if askokcancel('Exit', 'Are you sure you want to leave?'):
-            # self.on_save()
+            self.on_save()
             self.parent.quit()
             self.parent.destroy()
 
