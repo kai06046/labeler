@@ -248,15 +248,17 @@ class Labeler(tk.Frame, Utils, KeyHandler):
         delete_button.grid(row=0, column=0, sticky='e', padx=5)
 
         self.bbox_tv = ttk.Treeview(bboxlist_label_frame, height=10)
-        self.bbox_tv['columns'] = ('c', 'tl', 'br')
+        self.bbox_tv['columns'] = ('i', 'f', 'ts', 'emo')
         self.bbox_tv.heading('#0', text='', anchor='center')
         self.bbox_tv.column('#0', anchor='w', width=0)
-        self.bbox_tv.heading('c', text='Index')
-        self.bbox_tv.column('c', anchor='center', width=70)
-        self.bbox_tv.heading('tl', text='Timestamp')
-        self.bbox_tv.column('tl', anchor='center', width=180)
-        self.bbox_tv.heading('br', text='Emotion')
-        self.bbox_tv.column('br', anchor='center', width=120)
+        self.bbox_tv.heading('i', text='Index')
+        self.bbox_tv.column('i', anchor='center', width=70)
+        self.bbox_tv.heading('f', text='nframe')
+        self.bbox_tv.column('f', anchor='center', width=70)
+        self.bbox_tv.heading('ts', text='Timestamp')
+        self.bbox_tv.column('ts', anchor='center', width=180)
+        self.bbox_tv.heading('emo', text='Emotion')
+        self.bbox_tv.column('emo', anchor='center', width=120)
         self.bbox_tv.grid(row=1, column=0, sticky='news', padx=5)
 
         # define color
@@ -355,8 +357,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
 
         # change class index
         self.n_frame = 1
-        if self.n_frame in self.results.keys():
-            self.class_reindex()
+        # if self.n_frame in self.results.keys():
+        #     self.class_reindex()
         # else:
         #     self.on_class_button(k=1)
 
@@ -398,6 +400,8 @@ class Labeler(tk.Frame, Utils, KeyHandler):
             self.__video.release()
             self.__video = cv2.VideoCapture("icons/wise-ai.mp4")
             ok, self.__frame__ = self.__video.read()
+        else:
+            self.n_frame += 1
 
         self.__frame__ = cv2.resize(self.__frame__, (WIDTH, HEIGHT))
         if self.__is_live_stream:

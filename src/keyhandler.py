@@ -27,7 +27,7 @@ class KeyHandler(Interface):
                 emo = "DISGUST"
             elif k == 5:
                 emo = "FEAR"
-            values = (str(len(self.bbox_tv.get_children())+1), now().strftime("%Y%m%d%H%M%S%f")[:-3], emo)
+            values = (str(len(self.bbox_tv.get_children())+1), self.n_frame, now().strftime("%Y%m%d%H%M%S%f")[:-3], emo)
             self.bbox_tv.insert('', 'end', str(len(self.bbox_tv.get_children())), values=values)
         else:
             print("emotion class button gg...")
@@ -134,7 +134,7 @@ class KeyHandler(Interface):
     # callback for delete button of treeview
     def on_delete(self, event=None):
         for v in self.bbox_tv.selection():
-            index, timestamp, emo = tuple(self.bbox_tv.item(v)['values'])
+            # index, timestamp, emo = tuple(self.bbox_tv.item(v)['values'])
             # p1, p2 = eval(','.join(p1.split(' '))), eval(','.join(p2.split(' ')))
             # values = (c, p1, p2)
             # self.results[self.n_frame].pop(self.results[self.n_frame].index(values))
@@ -156,8 +156,8 @@ class KeyHandler(Interface):
             data = []
             for line in self.bbox_tv.get_children():
                 # for value in self.bbox_tv.item(line)['values']:
-                v1, v2, v3 = tuple(self.bbox_tv.item(line)['values'])
-                data.append("%s,%s,%s\n" % (v1, v2, v3))
+                v1, v2, v3, v4 = tuple(self.bbox_tv.item(line)['values'])
+                data.append("%s,%s,%s,%s\n" % (v1, v2, v3, v4))
 
             record_file = os.path.join(self.dir_path, os.path.basename(self.video_path).split(".")[0] + ".csv")
             with open(record_file, "w") as f:
